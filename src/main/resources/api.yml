@@ -1,0 +1,128 @@
+openapi: 3.0.3
+info:
+  title: Redia Backend API
+  description: API del sistema Redia con autenticación JWT
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+
+  /api/auth/register:
+    post:
+      summary: Registrar un nuevo usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Usuario registrado correctamente
+
+  /api/auth/login:
+    post:
+      summary: Autenticación de usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Token JWT generado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /api/auth/recover-password:
+    post:
+      summary: Recuperación de contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordRecoveryRequest'
+      responses:
+        '200':
+          description: Contraseña actualizada correctamente
+
+  /api/auth/logout:
+    post:
+      summary: Cierre de sesión lógico
+      responses:
+        '200':
+          description: Sesión cerrada correctamente
+
+  /api/test/admin:
+    get:
+      summary: Endpoint solo ADMINISTRADOR
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Acceso permitido
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    RegisterRequest:
+      type: object
+      required: [nombre, email, password, role]
+      properties:
+        nombre:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum:
+            - CLIENTE
+            - ADMINISTRADOR
+            - RECEPCIONISTA
+            - MESERO
+            - COCINERO
+            - AUXILIAR_COCINA
+            - CAJERO
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+
+    PasswordRecoveryRequest:
+      type: object
+      required: [email, nuevaPassword]
+      properties:
+        email:
+          type: string
+        nuevaPassword:
+          type: string

@@ -6,12 +6,12 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.function.Function;
 
 /**
- * Servicio encargado de la creación y validación de tokens JWT.
+ * Servicio encargado de generar y validar access tokens y refresh tokens.
  */
 @Service
 public class JwtService {
@@ -22,32 +22,36 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    private Key getSigningKey() {
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpiration;
+
+    private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    /**
-     * Genera un token JWT con el email del usuario como subject.
-     */
-    public String generateToken(String email) {
+    public String generateToken(String email, String role) {
         return Jwts.builder()
                 .subject(email)
+                .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    /**
-     * Extrae el email del token.
-     */
+    public String generateRefreshToken(String email) {
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    /**
-     * Valida si el token es válido y no ha expirado.
-     */
     public boolean isTokenValid(String token) {
         try {
             extractAllClaims(token);
@@ -55,6 +59,10 @@ public class JwtService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public boolean isRefreshTokenValid(String token) {
+        return isTokenValid(token);
     }
 
     private boolean isTokenExpired(String token) {
