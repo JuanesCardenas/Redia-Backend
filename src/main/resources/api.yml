@@ -67,6 +67,38 @@ paths:
       responses:
         '200':
           description: Acceso permitido
+  
+  /api/reservations:
+  post:
+    summary: Crear una reserva
+    security:
+      - bearerAuth: []
+  get:
+    summary: Obtener todas las reservas
+    security:
+      - bearerAuth: []
+
+  /api/reservations/my:
+    get:
+      summary: Obtener reservas del cliente
+      security:
+        - bearerAuth: []
+
+  /api/reservations/confirm/{id}:
+    put:
+      summary: Confirmar reserva
+
+  /api/reservations/reject/{id}:
+    put:
+      summary: Rechazar reserva
+
+  /api/reservations/cancel/{id}:
+    put:
+      summary: Cancelar reserva
+
+  /api/reservations/finish/{id}:
+    put:
+      summary: Finalizar reserva
 
 components:
 
