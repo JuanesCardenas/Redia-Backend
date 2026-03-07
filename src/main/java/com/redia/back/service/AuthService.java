@@ -1,7 +1,6 @@
 package com.redia.back.service;
 
-import com.redia.back.dto.PasswordRecoveryRequestDTO;
-import com.redia.back.dto.RegisterRequestDTO;
+import com.redia.back.dto.*;
 import com.redia.back.model.User;
 
 /**
@@ -14,4 +13,10 @@ public interface AuthService {
     void recoverPassword(PasswordRecoveryRequestDTO request);
 
     User findByEmail(String email);
+
+    void changePassword(String userId, ChangePasswordDTO changePasswordDTO);
+
+    void resetPassword(ResetPasswordDTO resetPasswordDTO);
+
+    void sendVerificationCode(ForgotPasswordDTO forgotPasswordDTO);
 }

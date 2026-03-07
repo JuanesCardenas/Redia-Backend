@@ -4,12 +4,16 @@ import com.redia.back.dto.*;
 import com.redia.back.model.User;
 import com.redia.back.security.JwtService;
 import com.redia.back.service.AuthService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -30,19 +34,31 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequestDTO request) {
+    public ResponseEntity<String> register(
+            @RequestParam String nombre,
+            @RequestParam String email,
+            @RequestParam String password,
+            @RequestParam String role,
+            @RequestParam(required = false) MultipartFile fotoUrl) {
 
-        logger.info("Intento de registro para email: {}", request.getEmail());
+        logger.info("Intento de registro para email: {}", email);
+
+        RegisterRequestDTO request = new RegisterRequestDTO();
+        request.setNombre(nombre);
+        request.setEmail(email);
+        request.setPassword(password);
+        request.setRole(role);
+        request.setFotoUrl(fotoUrl);
 
         authService.register(request);
 
-        logger.info("Registro exitoso para email: {}", request.getEmail());
+        logger.info("Registro exitoso para email: {}", email);
 
-        return ResponseEntity.ok("Usuario registrado correctamente");
+        return ResponseEntity.ok("Usuario registrado correctamente. Se envió un correo de bienvenida.");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
 
         logger.info("Intento de login para email: {}", request.getEmail());
 
@@ -71,7 +87,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponseDTO> refresh(@RequestBody RefreshTokenRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> refresh(@Valid @RequestBody RefreshTokenRequestDTO request) {
 
         logger.info("Solicitud de refresh token");
 
@@ -104,5 +120,57 @@ public class AuthController {
         logger.info("Solicitud de logout");
 
         return ResponseEntity.ok("Sesión cerrada correctamente");
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> sendVerificationCode(@Valid @RequestBody ForgotPasswordDTO request) {
+
+        logger.info("Solicitud de código de verificación para email: {}", request.email());
+
+        authService.sendVerificationCode(request);
+
+        logger.info("Código de verificación enviado a: {}", request.email());
+
+        return ResponseEntity.ok("Se ha enviado un código de verificación a tu correo electrónico. El código expira en 10 minutos.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordDTO request) {
+
+        logger.info("Solicitud de reset de contraseña para email: {}", request.email());
+
+        authService.resetPassword(request);
+
+        logger.info("Contraseña reseteada para email: {}", request.email());
+
+        return ResponseEntity.ok("Tu contraseña ha sido actualizada correctamente. Ya puedes iniciar sesión con tu nueva contraseña.");
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordDTO request) {
+
+        logger.info("Solicitud de cambio de contraseña");
+
+        // Obtener el usuario autenticado del contexto de seguridad
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+
+        authService.changePassword(userId, request);
+
+        logger.info("Contraseña cambiada para usuario: {}", userId);
+
+        return ResponseEntity.ok("Tu contraseña ha sido cambiada exitosamente.");
+    }
+
+    @PostMapping("/recover-password")
+    public ResponseEntity<String> recoverPassword(@Valid @RequestBody PasswordRecoveryRequestDTO request) {
+
+        logger.info("Solicitud de recuperación de contraseña para email: {}", request.getEmail());
+
+        authService.recoverPassword(request);
+
+        logger.info("Contraseña recuperada para email: {}", request.getEmail());
+
+        return ResponseEntity.ok("Tu contraseña ha sido actualizada correctamente.");
     }
 }

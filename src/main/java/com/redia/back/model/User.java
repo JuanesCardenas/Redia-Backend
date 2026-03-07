@@ -35,6 +35,21 @@ public class User {
 
     private LocalDateTime fechaCreacion = LocalDateTime.now();
 
+    /**
+     * Código de verificación para recuperación de contraseña
+     */
+    private String codigoVerificacion;
+
+    /**
+     * Fecha de expiración del código de verificación
+     */
+    private LocalDateTime codigoExpiraEn;
+
+    /**
+     * URL de la foto de perfil del usuario almacenada en Cloudinary
+     */
+    private String fotoUrl;
+
     public User() {}
 
     public User(String nombre, String email, String password, Role role) {
@@ -99,5 +114,29 @@ public class User {
 
     public LocalDateTime getFechaCreacion() {
         return fechaCreacion;
+    }
+
+    public String getCodigoVerificacion() {
+        return codigoVerificacion;
+    }
+
+    public void setCodigoVerificacion(String codigoVerificacion) {
+        this.codigoVerificacion = codigoVerificacion;
+    }
+
+    public LocalDateTime getCodigoExpiraEn() {
+        return codigoExpiraEn;
+    }
+
+    public void setCodigoExpiraEn(LocalDateTime codigoExpiraEn) {
+        this.codigoExpiraEn = codigoExpiraEn;
+    }
+
+    public String getFotoUrl() {
+        return fotoUrl;
+    }
+
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
     }
 }

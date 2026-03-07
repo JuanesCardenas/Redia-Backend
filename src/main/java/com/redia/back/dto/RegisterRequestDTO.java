@@ -1,5 +1,7 @@
 package com.redia.back.dto;
 
+import org.springframework.web.multipart.MultipartFile;
+
 /**
  * DTO que representa los datos recibidos para registrar un usuario.
  */
@@ -9,6 +11,7 @@ public class RegisterRequestDTO {
     private String email;
     private String password;
     private String role;
+    private MultipartFile fotoUrl;
 
     public String getNombre() {
         return nombre;
@@ -40,5 +43,13 @@ public class RegisterRequestDTO {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public MultipartFile getFotoUrl() {
+        return fotoUrl;
+    }
+
+    public void setFotoUrl(MultipartFile fotoUrl) {
+        this.fotoUrl = fotoUrl;
     }
 }
