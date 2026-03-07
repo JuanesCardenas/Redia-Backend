@@ -36,8 +36,7 @@ public class ReservationController {
 
         logger.info("Endpoint crear reserva");
 
-        ReservationResponseDTO reserva =
-                reservationService.crearReserva(request, null);
+        ReservationResponseDTO reserva = reservationService.crearReserva(request);
 
         return ResponseEntity.ok(reserva);
     }
@@ -49,8 +48,7 @@ public class ReservationController {
     public ResponseEntity<List<ReservationResponseDTO>> misReservas() {
 
         return ResponseEntity.ok(
-                reservationService.obtenerReservasCliente(null)
-        );
+                reservationService.obtenerReservasCliente());
     }
 
     /**
@@ -60,8 +58,7 @@ public class ReservationController {
     public ResponseEntity<List<ReservationResponseDTO>> todas() {
 
         return ResponseEntity.ok(
-                reservationService.obtenerTodas()
-        );
+                reservationService.obtenerTodas());
     }
 
     /**

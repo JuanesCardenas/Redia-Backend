@@ -34,7 +34,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final UserRepository userRepository;
 
     public ReservationServiceImpl(ReservationRepository reservationRepository,
-                                  UserRepository userRepository) {
+            UserRepository userRepository) {
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
     }
@@ -61,7 +61,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         logger.info("Solicitud de reserva por usuario: {}", cliente.getEmail());
 
-        LocalDateTime fecha = request.getFechaReserva();
+        LocalDateTime fecha = request.fechaReserva();
 
         if (fecha.isBefore(LocalDateTime.now())) {
             logger.warn("Intento de reserva en fecha pasada por usuario {}", cliente.getEmail());
@@ -82,8 +82,7 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation reserva = new Reservation(
                 cliente,
                 fecha,
-                request.getNumeroPersonas()
-        );
+                request.numeroPersonas());
 
         reservationRepository.save(reserva);
 
@@ -94,8 +93,7 @@ public class ReservationServiceImpl implements ReservationService {
                 cliente.getEmail(),
                 reserva.getFechaReserva(),
                 reserva.getNumeroPersonas(),
-                reserva.getEstado().name()
-        );
+                reserva.getEstado().name());
     }
 
     /**
@@ -115,8 +113,7 @@ public class ReservationServiceImpl implements ReservationService {
                         cliente.getEmail(),
                         r.getFechaReserva(),
                         r.getNumeroPersonas(),
-                        r.getEstado().name()
-                ))
+                        r.getEstado().name()))
                 .collect(Collectors.toList());
     }
 
@@ -135,8 +132,7 @@ public class ReservationServiceImpl implements ReservationService {
                         r.getCliente().getEmail(),
                         r.getFechaReserva(),
                         r.getNumeroPersonas(),
-                        r.getEstado().name()
-                ))
+                        r.getEstado().name()))
                 .collect(Collectors.toList());
     }
 

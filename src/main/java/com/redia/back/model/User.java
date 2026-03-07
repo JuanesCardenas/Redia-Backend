@@ -21,6 +21,9 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false, unique = true)
+    private String telefono;
+
     /**
      * Contraseña encriptada con BCrypt.
      */
@@ -50,11 +53,13 @@ public class User {
      */
     private String fotoUrl;
 
-    public User() {}
+    public User() {
+    }
 
-    public User(String nombre, String email, String password, Role role) {
+    public User(String nombre, String email, String telefono, String password, Role role) {
         this.nombre = nombre;
         this.email = email;
+        this.telefono = telefono;
         this.password = password;
         this.role = role;
     }
@@ -83,6 +88,14 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
     }
 
     public String getPassword() {

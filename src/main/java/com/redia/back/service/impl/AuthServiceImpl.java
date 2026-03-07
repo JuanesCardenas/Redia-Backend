@@ -17,7 +17,8 @@ import java.util.Map;
 
 /**
  * Implementación del servicio de autenticación.
- * Gestiona registro, recuperación de contraseña y cambios de contraseña con integración de email e imágenes.
+ * Gestiona registro, recuperación de contraseña y cambios de contraseña con
+ * integración de email e imágenes.
  */
 @Service
 @Transactional
@@ -29,9 +30,9 @@ public class AuthServiceImpl implements AuthService {
     private final ImageService imageService;
 
     public AuthServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder,
-                           EmailService emailService,
-                           ImageService imageService) {
+            PasswordEncoder passwordEncoder,
+            EmailService emailService,
+            ImageService imageService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
@@ -41,29 +42,29 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public User register(RegisterRequestDTO request) {
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(request.email())) {
             throw new BadRequestException("El correo ya está registrado.");
         }
 
         Role role;
 
         try {
-            role = Role.valueOf(request.getRole().toUpperCase());
+            role = Role.valueOf(request.role().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Rol inválido.");
         }
 
         User user = new User(
-                request.getNombre(),
-                request.getEmail(),
-                passwordEncoder.encode(request.getPassword()),
-                role
-        );
+                request.nombre(),
+                request.email(),
+                request.telefono(),
+                passwordEncoder.encode(request.password()),
+                role);
 
         // Subir la imagen a Cloudinary si se proporciona
-        if (request.getFotoUrl() != null && !request.getFotoUrl().isEmpty()) {
+        if (request.fotoUrl() != null && !request.fotoUrl().isEmpty()) {
             try {
-                Map<String, Object> uploadResult = imageService.upload(request.getFotoUrl());
+                Map<String, Object> uploadResult = imageService.upload(request.fotoUrl());
                 String fotoUrl = uploadResult.get("url").toString();
                 user.setFotoUrl(fotoUrl);
             } catch (Exception e) {
@@ -82,9 +83,7 @@ public class AuthServiceImpl implements AuthService {
                                     "¡Bienvenido a Redia! Tu registro ha sido completado exitosamente.\n\n" +
                                     "Ya puedes acceder a la plataforma con tu correo y contraseña.\n\n" +
                                     "Saludos,\nEl equipo de Redia",
-                            user.getEmail()
-                    )
-            );
+                            user.getEmail()));
         } catch (Exception e) {
             // Log del error pero no interrumpir el flujo de registro
             System.err.println("Error al enviar correo de bienvenida: " + e.getMessage());
@@ -96,10 +95,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void recoverPassword(PasswordRecoveryRequestDTO request) {
 
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
 
-        user.setPassword(passwordEncoder.encode(request.getNuevaPassword()));
+        user.setPassword(passwordEncoder.encode(request.nuevaPassword()));
 
         userRepository.save(user);
 
@@ -112,9 +111,7 @@ public class AuthServiceImpl implements AuthService {
                                     "Realizaste un cambio de contraseña en tu cuenta de Redia.\n" +
                                     "Si no fuiste tú, por favor contáctanos de inmediato.\n\n" +
                                     "Saludos,\nEl equipo de Redia",
-                            user.getEmail()
-                    )
-            );
+                            user.getEmail()));
         } catch (Exception e) {
             System.err.println("Error al enviar correo de confirmación: " + e.getMessage());
         }
@@ -127,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new BadRequestException("El usuario no existe."));
 
         // Generar un código aleatorio de 6 dígitos
-        String codigo = String.valueOf((int)(Math.random() * 900000) + 100000);
+        String codigo = String.valueOf((int) (Math.random() * 900000) + 100000);
 
         // Guardar el código y su fecha de expiración
         usuario.setCodigoVerificacion(codigo);
@@ -145,9 +142,7 @@ public class AuthServiceImpl implements AuthService {
                                     "Este código expira en 10 minutos.\n\n" +
                                     "Si no solicitaste esto, ignora este correo.\n\n" +
                                     "Saludos,\nEl equipo de Redia",
-                            usuario.getEmail()
-                    )
-            );
+                            usuario.getEmail()));
         } catch (Exception e) {
             throw new BadRequestException("Error al enviar el código de verificación.");
         }
@@ -191,9 +186,7 @@ public class AuthServiceImpl implements AuthService {
                                     "Tu contraseña ha sido reseteada exitosamente.\n" +
                                     "Ya puedes iniciar sesión con tu nueva contraseña.\n\n" +
                                     "Saludos,\nEl equipo de Redia",
-                            usuario.getEmail()
-                    )
-            );
+                            usuario.getEmail()));
         } catch (Exception e) {
             System.err.println("Error al enviar correo de confirmación: " + e.getMessage());
         }
@@ -228,9 +221,7 @@ public class AuthServiceImpl implements AuthService {
                                     "Tu contraseña ha sido cambiada exitosamente.\n" +
                                     "Si no fuiste tú, por favor contáctanos de inmediato.\n\n" +
                                     "Saludos,\nEl equipo de Redia",
-                            user.getEmail()
-                    )
-            );
+                            user.getEmail()));
         } catch (Exception e) {
             System.err.println("Error al enviar correo de confirmación: " + e.getMessage());
         }
@@ -242,4 +233,3 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
     }
 }
-

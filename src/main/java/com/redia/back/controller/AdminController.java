@@ -17,6 +17,6 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @GetMapping("/api/admin/dashboard")
     public String dashboard() {
-        return "Bienvenido al panel de administrador 🔥";
+        return "Bienvenido al panel de administrador";
     }
 }

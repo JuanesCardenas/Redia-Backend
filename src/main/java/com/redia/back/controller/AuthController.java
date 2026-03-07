@@ -26,8 +26,8 @@ public class AuthController {
     private final JwtService jwtService;
 
     public AuthController(AuthService authService,
-                          AuthenticationManager authenticationManager,
-                          JwtService jwtService) {
+            AuthenticationManager authenticationManager,
+            JwtService jwtService) {
         this.authService = authService;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
@@ -38,17 +38,13 @@ public class AuthController {
             @RequestParam String nombre,
             @RequestParam String email,
             @RequestParam String password,
+            @RequestParam String telefono,
             @RequestParam String role,
             @RequestParam(required = false) MultipartFile fotoUrl) {
 
         logger.info("Intento de registro para email: {}", email);
 
-        RegisterRequestDTO request = new RegisterRequestDTO();
-        request.setNombre(nombre);
-        request.setEmail(email);
-        request.setPassword(password);
-        request.setRole(role);
-        request.setFotoUrl(fotoUrl);
+        RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, password, telefono, role, fotoUrl);
 
         authService.register(request);
 
@@ -60,30 +56,26 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
 
-        logger.info("Intento de login para email: {}", request.getEmail());
+        logger.info("Intento de login para email: {}", request.email());
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+                        request.email(),
+                        request.password()));
 
-        User user = authService.findByEmail(request.getEmail());
+        User user = authService.findByEmail(request.email());
 
         String accessToken = jwtService.generateToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
-        logger.info("Login exitoso para email: {}", request.getEmail());
+        logger.info("Login exitoso para email: {}", request.email());
 
         return ResponseEntity.ok(
                 new AuthResponseDTO(
                         accessToken,
                         refreshToken,
                         user.getEmail(),
-                        user.getRole().name()
-                )
-        );
+                        user.getRole().name()));
     }
 
     @PostMapping("/refresh")
@@ -91,9 +83,9 @@ public class AuthController {
 
         logger.info("Solicitud de refresh token");
 
-        String email = jwtService.extractEmail(request.getRefreshToken());
+        String email = jwtService.extractEmail(request.refreshToken());
 
-        if (!jwtService.isRefreshTokenValid(request.getRefreshToken())) {
+        if (!jwtService.isRefreshTokenValid(request.refreshToken())) {
             logger.warn("Refresh token inválido");
             throw new RuntimeException("Refresh token inválido");
         }
@@ -107,11 +99,9 @@ public class AuthController {
         return ResponseEntity.ok(
                 new AuthResponseDTO(
                         newAccessToken,
-                        request.getRefreshToken(),
+                        request.refreshToken(),
                         user.getEmail(),
-                        user.getRole().name()
-                )
-        );
+                        user.getRole().name()));
     }
 
     @PostMapping("/logout")
@@ -131,7 +121,8 @@ public class AuthController {
 
         logger.info("Código de verificación enviado a: {}", request.email());
 
-        return ResponseEntity.ok("Se ha enviado un código de verificación a tu correo electrónico. El código expira en 10 minutos.");
+        return ResponseEntity
+                .ok("Se ha enviado un código de verificación a tu correo electrónico. El código expira en 10 minutos.");
     }
 
     @PostMapping("/reset-password")
@@ -143,7 +134,8 @@ public class AuthController {
 
         logger.info("Contraseña reseteada para email: {}", request.email());
 
-        return ResponseEntity.ok("Tu contraseña ha sido actualizada correctamente. Ya puedes iniciar sesión con tu nueva contraseña.");
+        return ResponseEntity.ok(
+                "Tu contraseña ha sido actualizada correctamente. Ya puedes iniciar sesión con tu nueva contraseña.");
     }
 
     @PostMapping("/change-password")
@@ -165,11 +157,11 @@ public class AuthController {
     @PostMapping("/recover-password")
     public ResponseEntity<String> recoverPassword(@Valid @RequestBody PasswordRecoveryRequestDTO request) {
 
-        logger.info("Solicitud de recuperación de contraseña para email: {}", request.getEmail());
+        logger.info("Solicitud de recuperación de contraseña para email: {}", request.email());
 
         authService.recoverPassword(request);
 
-        logger.info("Contraseña recuperada para email: {}", request.getEmail());
+        logger.info("Contraseña recuperada para email: {}", request.email());
 
         return ResponseEntity.ok("Tu contraseña ha sido actualizada correctamente.");
     }
