@@ -18,21 +18,21 @@ public class EmailServiceImpl implements EmailService {
     @Async
     public void sendMail(EmailDTO emailDTO) {
         Email email = EmailBuilder.startingBlank()
-                .from("redia@gmail.com")
+                .from("redia.serviciocliente@gmail.com")
                 .to(emailDTO.recipient())
                 .withSubject(emailDTO.subject())
                 .withPlainText(emailDTO.body())
                 .buildEmail();
 
         try (Mailer mailer = MailerBuilder
-                .withSMTPServer("smtp.gmail.com", 587, "redia@gmail.com", "sdcj htxt pbzy gonp")
+                .withSMTPServer("smtp.gmail.com", 587, "redia.serviciocliente@gmail.com", "oyme mpun cund jhvb")
                 .withTransportStrategy(TransportStrategy.SMTP_TLS)
                 .withDebugLogging(true)
                 .buildMailer()) {
 
             mailer.sendMail(email);
         } catch (Exception e) {
-            throw new BadRequestException("Error enviando el correo: " + e.getMessage());
+            System.err.println("Error enviando correo: " + e.getMessage());
         }
     }
 }
