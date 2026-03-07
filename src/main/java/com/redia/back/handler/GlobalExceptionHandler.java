@@ -1,6 +1,8 @@
 package com.redia.back.handler;
 
 import com.redia.back.exception.BadRequestException;
+import com.redia.back.exception.MissingCredentialsException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -8,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +37,22 @@ public class GlobalExceptionHandler {
         logger.warn("Credenciales inválidas");
 
         return buildResponse(HttpStatus.UNAUTHORIZED, "Credenciales inválidas");
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDenied() {
+
+        logger.warn("Acceso denegado");
+
+        return buildResponse(HttpStatus.FORBIDDEN, "Acceso denegado");
+    }
+
+    @ExceptionHandler(MissingCredentialsException.class)
+    public ResponseEntity<?> handleMissingCredentials() {
+
+        logger.warn("Credenciales faltantes");
+
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Credenciales faltantes");
     }
 
     @ExceptionHandler(Exception.class)

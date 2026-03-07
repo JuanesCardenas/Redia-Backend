@@ -1,6 +1,7 @@
 package com.redia.back.controller;
 
 import com.redia.back.dto.*;
+import com.redia.back.exception.MissingCredentialsException;
 import com.redia.back.model.User;
 import com.redia.back.security.JwtService;
 import com.redia.back.service.AuthService;
@@ -43,6 +44,26 @@ public class AuthController {
             @RequestParam(required = false) MultipartFile fotoUrl) {
 
         logger.info("Intento de registro para email: {}", email);
+
+        if (nombre == null || nombre.isEmpty()) {
+            throw new MissingCredentialsException("El nombre es requerido.");
+        }
+
+        if (email == null || email.isEmpty()) {
+            throw new MissingCredentialsException("El correo es requerido.");
+        }
+
+        if (password == null || password.isEmpty()) {
+            throw new MissingCredentialsException("La contraseña es requerida.");
+        }
+
+        if (telefono == null || telefono.isEmpty()) {
+            throw new MissingCredentialsException("El teléfono es requerido.");
+        }
+
+        if (role == null || role.isEmpty()) {
+            throw new MissingCredentialsException("El rol es requerido.");
+        }
 
         RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, password, telefono, role, fotoUrl);
 

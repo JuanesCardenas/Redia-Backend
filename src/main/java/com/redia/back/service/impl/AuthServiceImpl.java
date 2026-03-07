@@ -2,6 +2,7 @@ package com.redia.back.service.impl;
 
 import com.redia.back.dto.*;
 import com.redia.back.exception.BadRequestException;
+import com.redia.back.exception.MissingCredentialsException;
 import com.redia.back.model.Role;
 import com.redia.back.model.User;
 import com.redia.back.repository.UserRepository;
@@ -52,6 +53,22 @@ public class AuthServiceImpl implements AuthService {
             role = Role.valueOf(request.role().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Rol inválido.");
+        }
+
+        if (request.email() == null || request.email().isEmpty()) {
+            throw new MissingCredentialsException("El correo es requerido.");
+        }
+
+        if (request.password() == null || request.password().isEmpty()) {
+            throw new MissingCredentialsException("La contraseña es requerida.");
+        }
+
+        if (request.nombre() == null || request.nombre().isEmpty()) {
+            throw new MissingCredentialsException("El nombre es requerido.");
+        }
+
+        if (request.telefono() == null || request.telefono().isEmpty()) {
+            throw new MissingCredentialsException("El teléfono es requerido.");
         }
 
         User user = new User(
