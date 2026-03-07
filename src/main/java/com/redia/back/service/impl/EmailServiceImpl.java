@@ -18,14 +18,14 @@ public class EmailServiceImpl implements EmailService {
     @Async
     public void sendMail(EmailDTO emailDTO) {
         Email email = EmailBuilder.startingBlank()
-                .from("correosappbooking@gmail.com")
+                .from("redia@gmail.com")
                 .to(emailDTO.recipient())
                 .withSubject(emailDTO.subject())
                 .withPlainText(emailDTO.body())
                 .buildEmail();
 
         try (Mailer mailer = MailerBuilder
-                .withSMTPServer("smtp.gmail.com", 587, "correosappbooking@gmail.com", "kflh dabq wpvj gntg")
+                .withSMTPServer("smtp.gmail.com", 587, "redia@gmail.com", "sdcj htxt pbzy gonp")
                 .withTransportStrategy(TransportStrategy.SMTP_TLS)
                 .withDebugLogging(true)
                 .buildMailer()) {
