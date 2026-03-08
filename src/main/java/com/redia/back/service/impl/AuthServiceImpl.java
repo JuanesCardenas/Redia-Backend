@@ -47,6 +47,10 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("El correo ya está registrado.");
         }
 
+        if (userRepository.existsByTelefono(request.telefono())) {
+            throw new BadRequestException("El teléfono ya está registrado.");
+        }
+
         Role role;
 
         try {
