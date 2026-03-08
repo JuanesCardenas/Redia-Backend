@@ -1,6 +1,7 @@
 package com.redia.back.service.impl;
 
 import com.redia.back.dto.CreateDinningTableRequestDTO;
+import com.redia.back.dto.UpdateDinningTableRequestDTO;
 import com.redia.back.exception.BadRequestException;
 import com.redia.back.model.DinningTable;
 import com.redia.back.repository.DinningTableRepository;
@@ -13,11 +14,12 @@ import java.util.List;
 
 /**
  * Implementación del servicio encargado de gestionar las mesas del restaurante.
- * 
+ *
  * Este servicio permite:
  * - Crear mesas
  * - Obtener todas las mesas
- * - Buscar mesas por estado
+ * - Obtener mesa por ID
+ * - Actualizar mesas
  * - Eliminar mesas
  */
 @Service
@@ -35,7 +37,7 @@ public class DinningTableServiceImpl implements DinningTableService {
 
     /**
      * Crea una nueva mesa en el sistema.
-     * 
+     *
      * La mesa se crea con estado DISPONIBLE por defecto.
      */
     @Override
@@ -43,13 +45,13 @@ public class DinningTableServiceImpl implements DinningTableService {
 
         DinningTable diningTable = new DinningTable(
                 request.nombre(),
-                Integer.parseInt(request.capacidad()));
+                request.capacidad());
 
         return diningTableRepository.save(diningTable);
     }
 
     /**
-     * Obtiene la mesas por id en el sistema.
+     * Obtiene una mesa por su identificador.
      */
     @Override
     public DinningTable getDinningTableById(String id) {
@@ -65,6 +67,21 @@ public class DinningTableServiceImpl implements DinningTableService {
     public List<DinningTable> getAllDinningTables() {
 
         return diningTableRepository.findAll();
+    }
+
+    /**
+     * Actualiza los datos de una mesa existente.
+     */
+    @Override
+    public DinningTable updateDinningTable(String id, UpdateDinningTableRequestDTO request) {
+
+        DinningTable diningTable = diningTableRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("La mesa no existe."));
+
+        diningTable.setNombre(request.nombre());
+        diningTable.setCapacidad(request.capacidad());
+
+        return diningTableRepository.save(diningTable);
     }
 
     /**
