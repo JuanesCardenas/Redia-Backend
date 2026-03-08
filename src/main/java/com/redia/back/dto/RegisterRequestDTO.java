@@ -17,7 +17,7 @@ public record RegisterRequestDTO(
 
                 @NotBlank(message = "El teléfono es requerido") @Pattern(regexp = "^\\d{10}$", message = "El teléfono debe tener exactamente 10 números") String telefono,
 
-                @NotBlank(message = "La contraseña es requerida") String password,
+                @NotBlank(message = "La contraseña es requerida") @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres") @Pattern(regexp = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).*$", message = "La contraseña debe contener al menos una letra mayúscula, una letra minúscula, un número y un carácter especial") String password,
 
                 @NotBlank(message = "El rol es requerido") String role,
 
