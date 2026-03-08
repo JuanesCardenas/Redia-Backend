@@ -3,7 +3,6 @@ package com.redia.back.service.impl;
 import com.redia.back.dto.CreateDinningTableRequestDTO;
 import com.redia.back.exception.BadRequestException;
 import com.redia.back.model.DinningTable;
-import com.redia.back.model.DinningTableStatus;
 import com.redia.back.repository.DinningTableRepository;
 import com.redia.back.service.DinningTableService;
 
@@ -44,8 +43,7 @@ public class DinningTableServiceImpl implements DinningTableService {
 
         DinningTable diningTable = new DinningTable(
                 request.nombre(),
-                Integer.parseInt(request.capacidad()),
-                DinningTableStatus.DISPONIBLE);
+                Integer.parseInt(request.capacidad()));
 
         return diningTableRepository.save(diningTable);
     }
@@ -67,15 +65,6 @@ public class DinningTableServiceImpl implements DinningTableService {
     public List<DinningTable> getAllDinningTables() {
 
         return diningTableRepository.findAll();
-    }
-
-    /**
-     * Obtiene todas las mesas filtradas por su estado.
-     */
-    @Override
-    public List<DinningTable> findAllByEstadoMesa(DinningTableStatus estadoMesa) {
-
-        return diningTableRepository.findAllByEstadoMesa(estadoMesa);
     }
 
     /**

@@ -3,6 +3,7 @@ package com.redia.back.repository;
 import com.redia.back.model.Reservation;
 import com.redia.back.model.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +23,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, String
 
     /**
      * Busca reservas en una fecha específica.
-     * Se utilizará para verificar disponibilidad.
      */
     List<Reservation> findByFechaReserva(LocalDateTime fechaReserva);
 
@@ -30,4 +30,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, String
      * Busca reservas por estado.
      */
     List<Reservation> findByEstado(ReservationStatus estado);
+
+    /**
+     * Busca reservas que se solapan con un rango de tiempo.
+     */
+    @Query("""
+                SELECT r FROM Reservation r
+                WHERE r.fechaReserva < :horaFin
+                AND r.horaFinReserva > :horaInicio
+            """)
+    List<Reservation> findReservasSolapadas(LocalDateTime horaInicio, LocalDateTime horaFin);
 }

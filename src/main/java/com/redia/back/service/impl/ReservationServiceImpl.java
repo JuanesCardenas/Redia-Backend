@@ -1,11 +1,14 @@
 package com.redia.back.service.impl;
 
+import com.redia.back.dto.ConfirmReservationRequestDTO;
 import com.redia.back.dto.CreateReservationRequestDTO;
 import com.redia.back.dto.ReservationResponseDTO;
 import com.redia.back.exception.BadRequestException;
+import com.redia.back.model.DinningTable;
 import com.redia.back.model.Reservation;
 import com.redia.back.model.ReservationStatus;
 import com.redia.back.model.User;
+import com.redia.back.repository.DinningTableRepository;
 import com.redia.back.repository.ReservationRepository;
 import com.redia.back.repository.UserRepository;
 import com.redia.back.service.ReservationService;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,11 +36,16 @@ public class ReservationServiceImpl implements ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
+    private final DinningTableRepository dinningTableRepository;
 
-    public ReservationServiceImpl(ReservationRepository reservationRepository,
-            UserRepository userRepository) {
+    public ReservationServiceImpl(
+            ReservationRepository reservationRepository,
+            UserRepository userRepository,
+            DinningTableRepository dinningTableRepository) {
+
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
+        this.dinningTableRepository = dinningTableRepository;
     }
 
     /**
@@ -69,28 +78,23 @@ public class ReservationServiceImpl implements ReservationService {
             throw new BadRequestException("No se puede reservar en una fecha pasada.");
         }
 
-        /*
-         * Verificación simple de disponibilidad.
-         * Máximo 10 reservas por horario.
-         */
-        List<Reservation> reservas = reservationRepository.findByFechaReserva(fecha);
-
-        if (reservas.size() >= 10) {
-            logger.warn("Reserva rechazada por falta de disponibilidad en {}", fecha);
-            throw new BadRequestException("No hay disponibilidad en ese horario.");
-        }
-
         validarDuracionReserva(fecha, horaFinReserva);
+
+        int numeroPersonas = request.numeroPersonas();
 
         Reservation reserva = new Reservation(
                 cliente,
                 fecha,
                 horaFinReserva,
-                request.numeroPersonas());
+                numeroPersonas,
+                new ArrayList<>() // SIN mesas todavía
+        );
+
+        reserva.setEstado(ReservationStatus.SOLICITADA);
 
         reservationRepository.save(reserva);
 
-        logger.info("Reserva creada con id {}", reserva.getId());
+        logger.info("Reserva solicitada con id {}", reserva.getId());
 
         return new ReservationResponseDTO(
                 reserva.getId(),
@@ -99,6 +103,75 @@ public class ReservationServiceImpl implements ReservationService {
                 reserva.getHoraFinReserva(),
                 reserva.getNumeroPersonas(),
                 reserva.getEstado().name());
+    }
+
+    @Override
+    public void assignTablesAndConfirmReservation(String reservaId, ConfirmReservationRequestDTO request) {
+
+        logger.info("Recepcionista intenta confirmar reserva {}", reservaId);
+
+        Reservation reserva = reservationRepository.findById(reservaId)
+                .orElseThrow(() -> new BadRequestException("Reserva no encontrada"));
+
+        if (reserva.getEstado() != ReservationStatus.SOLICITADA) {
+            throw new BadRequestException("Solo se pueden confirmar reservas en estado SOLICITADA.");
+        }
+
+        LocalDateTime inicio = reserva.getFechaReserva();
+        LocalDateTime fin = reserva.getHoraFinReserva();
+
+        List<String> mesasIds = request.mesasIds();
+
+        List<DinningTable> mesasSeleccionadas = dinningTableRepository.findAllById(mesasIds);
+
+        if (mesasSeleccionadas.isEmpty()) {
+            throw new BadRequestException("Debe seleccionar al menos una mesa.");
+        }
+
+        /**
+         * Verificar disponibilidad
+         */
+        List<DinningTable> mesasDisponibles = dinningTableRepository.findMesasDisponibles(inicio, fin);
+
+        for (DinningTable mesa : mesasSeleccionadas) {
+
+            boolean disponible = mesasDisponibles.stream()
+                    .anyMatch(m -> m.getId().equals(mesa.getId()));
+
+            if (!disponible) {
+
+                logger.warn("Mesa {} no está disponible", mesa.getId());
+
+                throw new BadRequestException(
+                        "La mesa " + mesa.getNombre() + " no está disponible en ese horario.");
+            }
+        }
+
+        /**
+         * Validar capacidad
+         */
+        int capacidadTotal = mesasSeleccionadas.stream()
+                .mapToInt(DinningTable::getCapacidad)
+                .sum();
+
+        if (capacidadTotal < reserva.getNumeroPersonas()) {
+
+            throw new BadRequestException(
+                    "Las mesas seleccionadas no tienen capacidad suficiente para "
+                            + reserva.getNumeroPersonas() + " personas.");
+        }
+
+        /**
+         * Asignar mesas y confirmar
+         */
+        reserva.setMesas(mesasSeleccionadas);
+        reserva.setNumeroMesas(mesasSeleccionadas.size());
+        reserva.setEstado(ReservationStatus.CONFIRMADA);
+
+        reservationRepository.save(reserva);
+
+        logger.info("Reserva {} confirmada con {} mesas",
+                reservaId, mesasSeleccionadas.size());
     }
 
     /**
@@ -143,9 +216,6 @@ public class ReservationServiceImpl implements ReservationService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Confirmar reserva (recepcionista).
-     */
     @Override
     public void confirmarReserva(String reservaId) {
 
@@ -159,9 +229,6 @@ public class ReservationServiceImpl implements ReservationService {
         logger.info("Reserva {} confirmada", reservaId);
     }
 
-    /**
-     * Rechazar reserva.
-     */
     @Override
     public void rechazarReserva(String reservaId) {
 
@@ -175,9 +242,6 @@ public class ReservationServiceImpl implements ReservationService {
         logger.info("Reserva {} rechazada", reservaId);
     }
 
-    /**
-     * Cancelar reserva por parte del cliente.
-     */
     @Override
     public void cancelarReserva(String reservaId) {
 
@@ -198,9 +262,6 @@ public class ReservationServiceImpl implements ReservationService {
         logger.info("Reserva {} cancelada", reservaId);
     }
 
-    /**
-     * Finalizar reserva cuando el cliente llega al restaurante.
-     */
     @Override
     public void finalizarReserva(String reservaId) {
 

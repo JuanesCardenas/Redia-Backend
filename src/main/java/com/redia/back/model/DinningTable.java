@@ -2,8 +2,6 @@ package com.redia.back.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,13 +35,6 @@ public class DinningTable {
     private int capacidad = 4;
 
     /**
-     * Estado actual de la mesa.
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private DinningTableStatus estadoMesa;
-
-    /**
      * Constructor vacío requerido por JPA.
      */
     public DinningTable() {
@@ -53,10 +44,9 @@ public class DinningTable {
      * Constructor con parámetros para crear una mesa
      * con sus datos iniciales.
      */
-    public DinningTable(String nombre, int capacidad, DinningTableStatus estadoMesa) {
+    public DinningTable(String nombre, int capacidad) {
         this.nombre = nombre;
         this.capacidad = capacidad;
-        this.estadoMesa = estadoMesa;
     }
 
     // ========================
@@ -85,13 +75,5 @@ public class DinningTable {
 
     public void setCapacidad(int capacidad) {
         this.capacidad = capacidad;
-    }
-
-    public DinningTableStatus getEstadoMesa() {
-        return estadoMesa;
-    }
-
-    public void setEstadoMesa(DinningTableStatus estadoMesa) {
-        this.estadoMesa = estadoMesa;
     }
 }

@@ -1,5 +1,6 @@
 package com.redia.back.controller;
 
+import com.redia.back.dto.ConfirmReservationRequestDTO;
 import com.redia.back.dto.CreateReservationRequestDTO;
 import com.redia.back.dto.ReservationResponseDTO;
 import com.redia.back.service.ReservationService;
@@ -62,14 +63,16 @@ public class ReservationController {
     }
 
     /**
-     * Confirmar reserva.
+     * El recepcionista asigna mesas y confirma la reserva.
      */
-    @PutMapping("/confirm/{id}")
-    public ResponseEntity<String> confirmar(@PathVariable String id) {
+    @PutMapping("/confirm-with-tables/{id}")
+    public ResponseEntity<String> confirmarConMesas(
+            @PathVariable String id,
+            @RequestBody ConfirmReservationRequestDTO request) {
 
-        reservationService.confirmarReserva(id);
+        reservationService.assignTablesAndConfirmReservation(id, request);
 
-        return ResponseEntity.ok("Reserva confirmada");
+        return ResponseEntity.ok("Reserva confirmada y mesas asignadas");
     }
 
     /**
