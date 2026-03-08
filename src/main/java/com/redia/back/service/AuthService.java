@@ -2,6 +2,7 @@ package com.redia.back.service;
 
 import com.redia.back.dto.*;
 import com.redia.back.model.User;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Servicio que define las operaciones relacionadas con autenticación.
@@ -21,4 +22,6 @@ public interface AuthService {
     void sendVerificationCode(ForgotPasswordDTO forgotPasswordDTO);
 
     AuthResponseDTO googleLogin(GoogleLoginRequestDTO request);
+
+    java.util.Map<String, Object> completeProfile(String telefono, String password, MultipartFile foto, String email);
 }

@@ -195,4 +195,20 @@ public class AuthController {
         AuthResponseDTO response = authService.googleLogin(request);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping(value = "/complete-profile", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> completeProfile(
+            @RequestParam(required = false) String telefono,
+            @RequestParam(required = false) String password,
+            @RequestParam(required = false) org.springframework.web.multipart.MultipartFile fotoUrl,
+            @RequestHeader("Authorization") String authHeader) {
+        logger.info("Completando perfil de usuario por Google");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new BadRequestException("Token de autorización requerido.");
+        }
+        String token = authHeader.substring(7);
+        String email = jwtService.extractEmail(token);
+        var result = authService.completeProfile(telefono, password, fotoUrl, email);
+        return ResponseEntity.ok(result);
+    }
 }
