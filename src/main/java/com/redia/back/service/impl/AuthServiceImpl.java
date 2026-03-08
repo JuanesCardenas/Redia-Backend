@@ -268,6 +268,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+<<<<<<< HEAD
     public java.util.Map<String, Object> completeProfile(String telefono, String password,
             org.springframework.web.multipart.MultipartFile foto, String email) {
         User user = userRepository.findByEmail(email)
@@ -303,5 +304,62 @@ public class AuthServiceImpl implements AuthService {
         result.put("telefono", user.getTelefono());
         result.put("fotoUrl", user.getFotoUrl());
         return result;
+=======
+    public AuthResponseDTO googleLogin(GoogleLoginRequestDTO request) {
+
+        try {
+
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    new NetHttpTransport(),
+                    GsonFactory.getDefaultInstance())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(request.getToken());
+
+            if (idToken == null) {
+                throw new BadRequestException("Token de Google inválido.");
+            }
+
+            GoogleIdToken.Payload payload = idToken.getPayload();
+
+            String email = payload.getEmail();
+            String nombre = (String) payload.get("name");
+            String foto = (String) payload.get("picture");
+
+            // Buscar o crear usuario
+            User user = userRepository.findByEmail(email)
+                    .orElseGet(() -> {
+
+                        User nuevoUsuario = new User(
+                                nombre,
+                                email,
+                                "",
+                                "",
+                                Role.CLIENTE
+                        );
+
+                        nuevoUsuario.setFotoUrl(foto);
+
+                        return userRepository.save(nuevoUsuario);
+                    });
+
+            String accessToken = jwtService.generateToken(user.getEmail(), user.getRole().name());
+            String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+            return new AuthResponseDTO(
+                    accessToken,
+                    refreshToken,
+                    user.getEmail(),
+                    user.getRole().name(),
+                    user.getNombre(),
+                    user.getTelefono() != null ? user.getTelefono() : "",
+                    user.getFotoUrl()
+            );
+
+        } catch (Exception e) {
+            throw new BadRequestException("Error al autenticar con Google.");
+        }
+>>>>>>> f07a38cfac183e7b2030e75c708ce9cb5c9aeef6
     }
 }
