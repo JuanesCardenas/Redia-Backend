@@ -329,17 +329,20 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
 
-        if (telefono != null && !telefono.isBlank()) {
-            boolean isSameNumber = telefono.equals(user.getTelefono());
-            if (!isSameNumber && userRepository.existsByTelefono(telefono)) {
-                throw new BadRequestException("Este número de teléfono ya está registrado con otra cuenta.");
-            }
-            user.setTelefono(telefono);
+        if (telefono == null || telefono.isBlank()) {
+            throw new BadRequestException("El teléfono es obligatorio.");
         }
+        boolean isSameNumber = telefono.equals(user.getTelefono());
+        if (!isSameNumber && userRepository.existsByTelefono(telefono)) {
+            throw new BadRequestException("Este número de teléfono ya está registrado con otra cuenta.");
+        }
+        user.setTelefono(telefono);
 
-        if (password != null && !password.isBlank()) {
-            user.setPassword(passwordEncoder.encode(password));
+        if (password == null || password.isBlank()) {
+            throw new BadRequestException("La contraseña es obligatoria.");
         }
+        user.setPassword(passwordEncoder.encode(password));
+
 
         if (foto != null && !foto.isEmpty()) {
             try {
