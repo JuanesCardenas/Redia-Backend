@@ -71,10 +71,6 @@ public class AuthController {
 
         logger.info("Intento de login para email: {}", request.email());
 
-        if (!recaptchaService.validateRecaptcha(request.recaptchaToken())) {
-            throw new BadRequestException("Validación de reCAPTCHA fallida.");
-        }
-
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),
@@ -139,6 +135,10 @@ public class AuthController {
     public ResponseEntity<String> sendVerificationCode(@Valid @RequestBody ForgotPasswordDTO request) {
 
         logger.info("Solicitud de código de verificación para email: {}", request.email());
+
+        if (!recaptchaService.validateRecaptcha(request.recaptchaToken())) {
+            throw new BadRequestException("Validación de reCAPTCHA fallida.");
+        }
 
         authService.sendVerificationCode(request);
 
