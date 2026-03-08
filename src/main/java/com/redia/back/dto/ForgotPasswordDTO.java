@@ -7,8 +7,7 @@ import jakarta.validation.constraints.NotBlank;
  * Record para solicitar el envío de código de verificación (olvide contraseña).
  */
 public record ForgotPasswordDTO(
-        @Email(message = "Debe ser un correo electrónico válido")
-        @NotBlank(message = "El correo no puede estar vacío")
-        String email
-) {
+                @Email(message = "Debe ser un correo electrónico válido") @NotBlank(message = "El correo no puede estar vacío") String email,
+
+                @NotBlank(message = "El reCAPTCHA es requerido") String recaptchaToken) {
 }
