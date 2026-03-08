@@ -268,43 +268,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-<<<<<<< HEAD
-    public java.util.Map<String, Object> completeProfile(String telefono, String password,
-            org.springframework.web.multipart.MultipartFile foto, String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
-
-        if (telefono != null && !telefono.isBlank()) {
-            // Only validate uniqueness if the number is changing
-            boolean isSameNumber = telefono.equals(user.getTelefono());
-            if (!isSameNumber && userRepository.existsByTelefono(telefono)) {
-                throw new BadRequestException("Este número de teléfono ya está registrado con otra cuenta.");
-            }
-            user.setTelefono(telefono);
-        }
-
-        if (password != null && !password.isBlank()) {
-            user.setPassword(passwordEncoder.encode(password));
-        }
-
-        if (foto != null && !foto.isEmpty()) {
-            try {
-                String url = imageService.uploadImage(foto);
-                user.setFotoUrl(url);
-            } catch (Exception e) {
-                System.err.println("Error subiendo foto: " + e.getMessage());
-            }
-        }
-
-        userRepository.save(user);
-
-        java.util.Map<String, Object> result = new java.util.HashMap<>();
-        result.put("nombre", user.getNombre());
-        result.put("email", user.getEmail());
-        result.put("telefono", user.getTelefono());
-        result.put("fotoUrl", user.getFotoUrl());
-        return result;
-=======
     public AuthResponseDTO googleLogin(GoogleLoginRequestDTO request) {
 
         try {
@@ -336,8 +299,7 @@ public class AuthServiceImpl implements AuthService {
                                 email,
                                 "",
                                 "",
-                                Role.CLIENTE
-                        );
+                                Role.CLIENTE);
 
                         nuevoUsuario.setFotoUrl(foto);
 
@@ -354,12 +316,47 @@ public class AuthServiceImpl implements AuthService {
                     user.getRole().name(),
                     user.getNombre(),
                     user.getTelefono() != null ? user.getTelefono() : "",
-                    user.getFotoUrl()
-            );
+                    user.getFotoUrl());
 
         } catch (Exception e) {
             throw new BadRequestException("Error al autenticar con Google.");
         }
->>>>>>> f07a38cfac183e7b2030e75c708ce9cb5c9aeef6
+    }
+
+    @Override
+    public java.util.Map<String, Object> completeProfile(String telefono, String password,
+            org.springframework.web.multipart.MultipartFile foto, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
+
+        if (telefono != null && !telefono.isBlank()) {
+            boolean isSameNumber = telefono.equals(user.getTelefono());
+            if (!isSameNumber && userRepository.existsByTelefono(telefono)) {
+                throw new BadRequestException("Este número de teléfono ya está registrado con otra cuenta.");
+            }
+            user.setTelefono(telefono);
+        }
+
+        if (password != null && !password.isBlank()) {
+            user.setPassword(passwordEncoder.encode(password));
+        }
+
+        if (foto != null && !foto.isEmpty()) {
+            try {
+                String url = imageService.uploadImage(foto);
+                user.setFotoUrl(url);
+            } catch (Exception e) {
+                System.err.println("Error subiendo foto: " + e.getMessage());
+            }
+        }
+
+        userRepository.save(user);
+
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("nombre", user.getNombre());
+        result.put("email", user.getEmail());
+        result.put("telefono", user.getTelefono());
+        result.put("fotoUrl", user.getFotoUrl());
+        return result;
     }
 }
