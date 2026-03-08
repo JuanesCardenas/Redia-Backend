@@ -12,8 +12,15 @@ import com.redia.back.service.ImageService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
+
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -29,15 +36,21 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final ImageService imageService;
+    private final com.redia.back.security.JwtService jwtService;
+
+    @Value("${google.client-id}")
+    private String googleClientId;
 
     public AuthServiceImpl(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             EmailService emailService,
-            ImageService imageService) {
+            ImageService imageService,
+            com.redia.back.security.JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.imageService = imageService;
+        this.jwtService = jwtService;
     }
 
     @Override

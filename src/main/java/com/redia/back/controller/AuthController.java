@@ -188,4 +188,11 @@ public class AuthController {
 
         return ResponseEntity.ok("Tu contraseña ha sido actualizada correctamente.");
     }
+
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponseDTO> googleLogin(@Valid @RequestBody GoogleLoginRequestDTO request) {
+        logger.info("Intento de login con Google");
+        AuthResponseDTO response = authService.googleLogin(request);
+        return ResponseEntity.ok(response);
+    }
 }

@@ -19,4 +19,6 @@ public interface AuthService {
     void resetPassword(ResetPasswordDTO resetPasswordDTO);
 
     void sendVerificationCode(ForgotPasswordDTO forgotPasswordDTO);
+
+    AuthResponseDTO googleLogin(GoogleLoginRequestDTO request);
 }
