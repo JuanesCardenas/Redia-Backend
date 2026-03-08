@@ -1,5 +1,6 @@
 package com.redia.back.dto;
 
+import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.constraints.Email;
