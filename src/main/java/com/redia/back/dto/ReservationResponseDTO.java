@@ -7,11 +7,12 @@ import java.time.LocalDateTime;
  */
 public record ReservationResponseDTO(
 
-        String id,
-        String clienteEmail,
-        LocalDateTime fechaReserva,
-        int numeroPersonas,
-        String estado
+                String id,
+                String clienteEmail,
+                LocalDateTime fechaReserva,
+                LocalDateTime horaFinReserva,
+                int numeroPersonas,
+                String estado
 
 ) {
 }

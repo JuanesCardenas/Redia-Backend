@@ -7,15 +7,20 @@ import java.time.LocalDateTime;
  */
 public record CreateReservationRequestDTO(
 
-        /**
-         * Fecha y hora solicitada para la reserva
-         */
-        LocalDateTime fechaReserva,
+                /**
+                 * Fecha y hora solicitada para la reserva
+                 */
+                LocalDateTime fechaReserva,
 
-        /**
-         * Número de personas
-         */
-        int numeroPersonas
+                /**
+                 * Fecha y hora de fin para la reserva
+                 */
+                LocalDateTime horaFinReserva,
+
+                /**
+                 * Número de personas
+                 */
+                int numeroPersonas
 
 ) {
 }

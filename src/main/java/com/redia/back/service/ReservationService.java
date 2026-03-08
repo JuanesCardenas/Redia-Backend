@@ -1,5 +1,6 @@
 package com.redia.back.service;
 
+import com.redia.back.dto.ConfirmReservationRequestDTO;
 import com.redia.back.dto.CreateReservationRequestDTO;
 import com.redia.back.dto.ReservationResponseDTO;
 
@@ -14,6 +15,11 @@ public interface ReservationService {
      * Crear una nueva reserva.
      */
     ReservationResponseDTO crearReserva(CreateReservationRequestDTO request);
+
+    /**
+     * Asigna mesas a una reserva y la confirma.
+     */
+    void assignTablesAndConfirmReservation(String reservationId, ConfirmReservationRequestDTO request);
 
     /**
      * Obtener reservas del cliente autenticado.

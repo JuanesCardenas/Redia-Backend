@@ -1,7 +1,12 @@
 package com.redia.back.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Entidad que representa una reserva dentro del sistema.
@@ -31,10 +36,16 @@ public class Reservation {
     private User cliente;
 
     /**
-     * Fecha y hora para la cual se realiza la reserva.
+     * Fecha y hora de inicio de la reserva.
      */
     @Column(nullable = false)
     private LocalDateTime fechaReserva;
+
+    /**
+     * Fecha y hora en la que termina la reserva.
+     */
+    @Column(nullable = false)
+    private LocalDateTime horaFinReserva;
 
     /**
      * Número de personas incluidas en la reserva.
@@ -43,15 +54,26 @@ public class Reservation {
     private int numeroPersonas;
 
     /**
+     * Número de mesas asociadas a la reserva.
+     * Este valor debe coincidir con el tamaño de la lista de mesas.
+     */
+    @Column(nullable = false)
+    @Min(1)
+    private int numeroMesas;
+
+    /**
+     * Lista de mesas asociadas a la reserva.
+     * 
+     * Relación muchos a muchos:
+     * - Una reserva puede tener varias mesas.
+     * - Una mesa puede participar en distintas reservas en diferentes horarios.
+     */
+    @ManyToMany
+    @JoinTable(name = "reservation_tables", joinColumns = @JoinColumn(name = "reservation_id"), inverseJoinColumns = @JoinColumn(name = "table_id"))
+    private List<DinningTable> mesas = new ArrayList<>();
+
+    /**
      * Estado actual de la reserva dentro del sistema.
-     *
-     * @Enumerated(EnumType.STRING)
-     *                              Hace que el enum se guarde como texto en la BD
-     *                              (SOLICITADA, CONFIRMADA, etc.) en lugar de
-     *                              números.
-     *
-     * @Column(nullable = false)
-     *                  Evita que se guarden reservas sin estado.
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -71,24 +93,39 @@ public class Reservation {
 
     /**
      * Constructor utilizado para crear nuevas reservas.
-     *
-     * @param cliente        usuario que realiza la reserva
-     * @param fechaReserva   fecha y hora reservada
-     * @param numeroPersonas cantidad de personas
-     * @param estado         estado inicial de la reserva
      */
-    public Reservation(User cliente, LocalDateTime fechaReserva, int numeroPersonas, ReservationStatus estado) {
+    public Reservation(User cliente,
+            LocalDateTime fechaReserva,
+            LocalDateTime horaFinReserva,
+            int numeroPersonas,
+            List<DinningTable> mesas,
+            ReservationStatus estado) {
+
         this.cliente = cliente;
         this.fechaReserva = fechaReserva;
+        this.horaFinReserva = horaFinReserva;
         this.numeroPersonas = numeroPersonas;
+        this.mesas = mesas;
+        this.numeroMesas = mesas.size();
         this.estado = estado;
         this.fechaCreacion = LocalDateTime.now();
     }
 
-    public Reservation(User cliente, LocalDateTime fechaReserva, int numeroPersonas) {
+    /**
+     * Constructor simplificado con estado por defecto.
+     */
+    public Reservation(User cliente,
+            LocalDateTime fechaReserva,
+            LocalDateTime horaFinReserva,
+            int numeroPersonas,
+            List<DinningTable> mesas) {
+
         this.cliente = cliente;
         this.fechaReserva = fechaReserva;
+        this.horaFinReserva = horaFinReserva;
         this.numeroPersonas = numeroPersonas;
+        this.mesas = mesas;
+        this.numeroMesas = mesas.size();
         this.estado = ReservationStatus.SOLICITADA;
         this.fechaCreacion = LocalDateTime.now();
     }
@@ -117,12 +154,37 @@ public class Reservation {
         this.fechaReserva = fechaReserva;
     }
 
+    public LocalDateTime getHoraFinReserva() {
+        return horaFinReserva;
+    }
+
+    public void setHoraFinReserva(LocalDateTime horaFinReserva) {
+        this.horaFinReserva = horaFinReserva;
+    }
+
     public int getNumeroPersonas() {
         return numeroPersonas;
     }
 
     public void setNumeroPersonas(int numeroPersonas) {
         this.numeroPersonas = numeroPersonas;
+    }
+
+    public int getNumeroMesas() {
+        return numeroMesas;
+    }
+
+    public void setNumeroMesas(int numeroMesas) {
+        this.numeroMesas = numeroMesas;
+    }
+
+    public List<DinningTable> getMesas() {
+        return mesas;
+    }
+
+    public void setMesas(List<DinningTable> mesas) {
+        this.mesas = mesas;
+        this.numeroMesas = mesas.size();
     }
 
     public ReservationStatus getEstado() {

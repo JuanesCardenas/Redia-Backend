@@ -5,12 +5,16 @@ import com.redia.back.exception.MissingCredentialsException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.access.AccessDeniedException;
+
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +27,19 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidation(MethodArgumentNotValidException ex) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+
+        logger.warn("Errores de validación: {}", errors);
+
+        return ResponseEntity.badRequest().body(errors);
+    }
+
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<?> handleBadRequest(BadRequestException ex) {
 
@@ -32,27 +49,27 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<?> handleBadCredentials() {
+    public ResponseEntity<?> handleBadCredentials(BadCredentialsException ex) {
 
         logger.warn("Credenciales inválidas");
 
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Credenciales inválidas");
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<?> handleAccessDenied() {
+    public ResponseEntity<?> handleAccessDenied(AccessDeniedException ex) {
 
         logger.warn("Acceso denegado");
 
-        return buildResponse(HttpStatus.FORBIDDEN, "Acceso denegado");
+        return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ExceptionHandler(MissingCredentialsException.class)
-    public ResponseEntity<?> handleMissingCredentials() {
+    public ResponseEntity<?> handleMissingCredentials(MissingCredentialsException ex) {
 
-        logger.warn("Credenciales faltantes");
+        logger.warn("MissingCredentialsException: {}", ex.getMessage());
 
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Credenciales faltantes");
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
@@ -66,6 +83,7 @@ public class GlobalExceptionHandler {
     private ResponseEntity<?> buildResponse(HttpStatus status, String message) {
 
         Map<String, Object> body = new HashMap<>();
+
         body.put("timestamp", LocalDateTime.now());
         body.put("status", status.value());
         body.put("error", status.getReasonPhrase());

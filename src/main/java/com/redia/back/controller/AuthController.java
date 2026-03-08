@@ -41,11 +41,11 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(
-            @RequestParam String nombre,
-            @RequestParam String email,
-            @RequestParam String password,
-            @RequestParam String telefono,
-            @RequestParam String role,
+            @Valid @RequestParam String nombre,
+            @Valid @RequestParam String email,
+            @Valid @RequestParam String password,
+            @Valid @RequestParam String telefono,
+            @Valid @RequestParam String role,
             @RequestParam(required = false) MultipartFile fotoUrl,
             @RequestParam String recaptchaToken) {
 
@@ -53,26 +53,6 @@ public class AuthController {
 
         if (!recaptchaService.validateRecaptcha(recaptchaToken)) {
             throw new BadRequestException("Validación de reCAPTCHA fallida.");
-        }
-
-        if (nombre == null || nombre.isEmpty()) {
-            throw new MissingCredentialsException("El nombre es requerido.");
-        }
-
-        if (email == null || email.isEmpty()) {
-            throw new MissingCredentialsException("El correo es requerido.");
-        }
-
-        if (password == null || password.isEmpty()) {
-            throw new MissingCredentialsException("La contraseña es requerida.");
-        }
-
-        if (telefono == null || telefono.isEmpty()) {
-            throw new MissingCredentialsException("El teléfono es requerido.");
-        }
-
-        if (role == null || role.isEmpty()) {
-            throw new MissingCredentialsException("El rol es requerido.");
         }
 
         RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, password, telefono, role, fotoUrl,
@@ -86,7 +66,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> login(
+            @Valid @RequestBody LoginRequestDTO request) {
 
         logger.info("Intento de login para email: {}", request.email());
 

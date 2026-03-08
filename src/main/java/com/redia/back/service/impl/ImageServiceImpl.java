@@ -19,7 +19,7 @@ public class ImageServiceImpl implements ImageService {
 
     public ImageServiceImpl(){
         Map<String, String> config = new HashMap<>();
-        config.put("cloud_name", "mediaflows_eed49203-a524-433f-b935-10cadab66963");
+        config.put("cloud_name", "dgvn4n9ry");
         config.put("api_key", "658511773432214");
         config.put("api_secret", "MsvQCfUmnxkQtFn3HBa2lLZ7y_c");
         cloudinary = new Cloudinary(config);
