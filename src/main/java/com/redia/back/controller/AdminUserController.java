@@ -54,7 +54,7 @@ public class AdminUserController {
 
         logger.info("ADMIN registrando usuario con email: {}", email);
 
-        RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, password, telefono, role, fotoUrl);
+        RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, telefono, password, role, fotoUrl, null);
 
         authService.register(request);
 
