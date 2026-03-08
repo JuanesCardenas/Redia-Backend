@@ -266,4 +266,62 @@ public class AuthServiceImpl implements AuthService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
     }
+
+    @Override
+    public AuthResponseDTO googleLogin(GoogleLoginRequestDTO request) {
+
+        try {
+
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    new NetHttpTransport(),
+                    GsonFactory.getDefaultInstance())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(request.getToken());
+
+            if (idToken == null) {
+                throw new BadRequestException("Token de Google inválido.");
+            }
+
+            GoogleIdToken.Payload payload = idToken.getPayload();
+
+            String email = payload.getEmail();
+            String nombre = (String) payload.get("name");
+            String foto = (String) payload.get("picture");
+
+            // Buscar o crear usuario
+            User user = userRepository.findByEmail(email)
+                    .orElseGet(() -> {
+
+                        User nuevoUsuario = new User(
+                                nombre,
+                                email,
+                                "",
+                                "",
+                                Role.CLIENTE
+                        );
+
+                        nuevoUsuario.setFotoUrl(foto);
+
+                        return userRepository.save(nuevoUsuario);
+                    });
+
+            String accessToken = jwtService.generateToken(user.getEmail(), user.getRole().name());
+            String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+            return new AuthResponseDTO(
+                    accessToken,
+                    refreshToken,
+                    user.getEmail(),
+                    user.getRole().name(),
+                    user.getNombre(),
+                    user.getTelefono() != null ? user.getTelefono() : "",
+                    user.getFotoUrl()
+            );
+
+        } catch (Exception e) {
+            throw new BadRequestException("Error al autenticar con Google.");
+        }
+    }
 }
