@@ -62,6 +62,7 @@ public class ReservationServiceImpl implements ReservationService {
         logger.info("Solicitud de reserva por usuario: {}", cliente.getEmail());
 
         LocalDateTime fecha = request.fechaReserva();
+        LocalDateTime horaFinReserva = request.horaFinReserva();
 
         if (fecha.isBefore(LocalDateTime.now())) {
             logger.warn("Intento de reserva en fecha pasada por usuario {}", cliente.getEmail());
@@ -79,9 +80,12 @@ public class ReservationServiceImpl implements ReservationService {
             throw new BadRequestException("No hay disponibilidad en ese horario.");
         }
 
+        validarDuracionReserva(fecha, horaFinReserva);
+
         Reservation reserva = new Reservation(
                 cliente,
                 fecha,
+                horaFinReserva,
                 request.numeroPersonas());
 
         reservationRepository.save(reserva);
@@ -92,6 +96,7 @@ public class ReservationServiceImpl implements ReservationService {
                 reserva.getId(),
                 cliente.getEmail(),
                 reserva.getFechaReserva(),
+                reserva.getHoraFinReserva(),
                 reserva.getNumeroPersonas(),
                 reserva.getEstado().name());
     }
@@ -112,6 +117,7 @@ public class ReservationServiceImpl implements ReservationService {
                         r.getId(),
                         cliente.getEmail(),
                         r.getFechaReserva(),
+                        r.getHoraFinReserva(),
                         r.getNumeroPersonas(),
                         r.getEstado().name()))
                 .collect(Collectors.toList());
@@ -131,6 +137,7 @@ public class ReservationServiceImpl implements ReservationService {
                         r.getId(),
                         r.getCliente().getEmail(),
                         r.getFechaReserva(),
+                        r.getHoraFinReserva(),
                         r.getNumeroPersonas(),
                         r.getEstado().name()))
                 .collect(Collectors.toList());
@@ -205,5 +212,22 @@ public class ReservationServiceImpl implements ReservationService {
         reservationRepository.save(reserva);
 
         logger.info("Reserva {} finalizada", reservaId);
+    }
+
+    private void validarDuracionReserva(LocalDateTime inicio, LocalDateTime fin) {
+
+        if (!inicio.toLocalDate().equals(fin.toLocalDate())) {
+            throw new IllegalArgumentException("La reserva debe comenzar y terminar el mismo día.");
+        }
+
+        long horas = java.time.Duration.between(inicio, fin).toHours();
+
+        if (horas <= 0) {
+            throw new IllegalArgumentException("La hora de finalización debe ser posterior al inicio.");
+        }
+
+        if (horas > 3) {
+            throw new IllegalArgumentException("Una reserva no puede durar más de 3 horas.");
+        }
     }
 }

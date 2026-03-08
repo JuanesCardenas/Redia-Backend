@@ -31,10 +31,16 @@ public class Reservation {
     private User cliente;
 
     /**
-     * Fecha y hora para la cual se realiza la reserva.
+     * Fecha y hora de inicio de la reserva.
      */
     @Column(nullable = false)
     private LocalDateTime fechaReserva;
+
+    /**
+     * Fecha y hora en la que termina la reserva.
+     */
+    @Column(nullable = false)
+    private LocalDateTime horaFinReserva;
 
     /**
      * Número de personas incluidas en la reserva.
@@ -44,14 +50,6 @@ public class Reservation {
 
     /**
      * Estado actual de la reserva dentro del sistema.
-     *
-     * @Enumerated(EnumType.STRING)
-     *                              Hace que el enum se guarde como texto en la BD
-     *                              (SOLICITADA, CONFIRMADA, etc.) en lugar de
-     *                              números.
-     *
-     * @Column(nullable = false)
-     *                  Evita que se guarden reservas sin estado.
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -71,23 +69,29 @@ public class Reservation {
 
     /**
      * Constructor utilizado para crear nuevas reservas.
-     *
-     * @param cliente        usuario que realiza la reserva
-     * @param fechaReserva   fecha y hora reservada
-     * @param numeroPersonas cantidad de personas
-     * @param estado         estado inicial de la reserva
      */
-    public Reservation(User cliente, LocalDateTime fechaReserva, int numeroPersonas, ReservationStatus estado) {
+    public Reservation(User cliente,
+            LocalDateTime fechaReserva,
+            LocalDateTime horaFinReserva,
+            int numeroPersonas,
+            ReservationStatus estado) {
+
         this.cliente = cliente;
         this.fechaReserva = fechaReserva;
+        this.horaFinReserva = horaFinReserva;
         this.numeroPersonas = numeroPersonas;
         this.estado = estado;
         this.fechaCreacion = LocalDateTime.now();
     }
 
-    public Reservation(User cliente, LocalDateTime fechaReserva, int numeroPersonas) {
+    public Reservation(User cliente,
+            LocalDateTime fechaReserva,
+            LocalDateTime horaFinReserva,
+            int numeroPersonas) {
+
         this.cliente = cliente;
         this.fechaReserva = fechaReserva;
+        this.horaFinReserva = horaFinReserva;
         this.numeroPersonas = numeroPersonas;
         this.estado = ReservationStatus.SOLICITADA;
         this.fechaCreacion = LocalDateTime.now();
@@ -115,6 +119,14 @@ public class Reservation {
 
     public void setFechaReserva(LocalDateTime fechaReserva) {
         this.fechaReserva = fechaReserva;
+    }
+
+    public LocalDateTime getHoraFinReserva() {
+        return horaFinReserva;
+    }
+
+    public void setHoraFinReserva(LocalDateTime horaFinReserva) {
+        this.horaFinReserva = horaFinReserva;
     }
 
     public int getNumeroPersonas() {
