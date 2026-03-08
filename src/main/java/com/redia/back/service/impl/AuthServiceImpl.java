@@ -343,7 +343,8 @@ public class AuthServiceImpl implements AuthService {
 
         if (foto != null && !foto.isEmpty()) {
             try {
-                String url = imageService.uploadImage(foto);
+                Map<String, Object> uploadResult = imageService.upload(foto);
+                String url = uploadResult.get("url").toString();
                 user.setFotoUrl(url);
             } catch (Exception e) {
                 System.err.println("Error subiendo foto: " + e.getMessage());
