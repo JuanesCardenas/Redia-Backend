@@ -7,12 +7,13 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public record RegisterRequestDTO(
 
-        String nombre,
-        String email,
-        String telefono,
-        String password,
-        String role,
-        MultipartFile fotoUrl
+                String nombre,
+                String email,
+                String telefono,
+                String password,
+                String role,
+                MultipartFile fotoUrl,
+                String recaptchaToken
 
 ) {
 }

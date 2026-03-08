@@ -19,3 +19,8 @@ jwt:
   secret: RediaRestauranteClaveUltraSecreta123456
   expiration: 900000           # 15 minutos
   refresh-expiration: 604800000 # 7 días
+
+google:
+  recaptcha:
+    secret: 6Lcg2IMsAAAAAOJC9s-bZ4RyVeTRdJAfZlSE9GpU
+    url: https://www.google.com/recaptcha/api/siteverify

@@ -5,6 +5,8 @@ import com.redia.back.exception.MissingCredentialsException;
 import com.redia.back.model.User;
 import com.redia.back.security.JwtService;
 import com.redia.back.service.AuthService;
+import com.redia.back.service.RecaptchaService;
+import com.redia.back.exception.BadRequestException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,13 +27,16 @@ public class AuthController {
     private final AuthService authService;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final RecaptchaService recaptchaService;
 
     public AuthController(AuthService authService,
             AuthenticationManager authenticationManager,
-            JwtService jwtService) {
+            JwtService jwtService,
+            RecaptchaService recaptchaService) {
         this.authService = authService;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.recaptchaService = recaptchaService;
     }
 
     @PostMapping("/register")
@@ -41,9 +46,14 @@ public class AuthController {
             @RequestParam String password,
             @RequestParam String telefono,
             @RequestParam String role,
-            @RequestParam(required = false) MultipartFile fotoUrl) {
+            @RequestParam(required = false) MultipartFile fotoUrl,
+            @RequestParam String recaptchaToken) {
 
         logger.info("Intento de registro para email: {}", email);
+
+        if (!recaptchaService.validateRecaptcha(recaptchaToken)) {
+            throw new BadRequestException("Validación de reCAPTCHA fallida.");
+        }
 
         if (nombre == null || nombre.isEmpty()) {
             throw new MissingCredentialsException("El nombre es requerido.");
@@ -65,7 +75,8 @@ public class AuthController {
             throw new MissingCredentialsException("El rol es requerido.");
         }
 
-        RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, password, telefono, role, fotoUrl);
+        RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, password, telefono, role, fotoUrl,
+                recaptchaToken);
 
         authService.register(request);
 
@@ -78,6 +89,10 @@ public class AuthController {
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
 
         logger.info("Intento de login para email: {}", request.email());
+
+        if (!recaptchaService.validateRecaptcha(request.recaptchaToken())) {
+            throw new BadRequestException("Validación de reCAPTCHA fallida.");
+        }
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -96,7 +111,10 @@ public class AuthController {
                         accessToken,
                         refreshToken,
                         user.getEmail(),
-                        user.getRole().name()));
+                        user.getRole().name(),
+                        user.getNombre(),
+                        user.getTelefono(),
+                        user.getFotoUrl()));
     }
 
     @PostMapping("/refresh")
@@ -122,7 +140,10 @@ public class AuthController {
                         newAccessToken,
                         request.refreshToken(),
                         user.getEmail(),
-                        user.getRole().name()));
+                        user.getRole().name(),
+                        user.getNombre(),
+                        user.getTelefono(),
+                        user.getFotoUrl()));
     }
 
     @PostMapping("/logout")
