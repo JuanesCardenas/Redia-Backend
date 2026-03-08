@@ -21,9 +21,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -77,6 +79,8 @@ public class ReservationServiceImpl implements ReservationService {
             logger.warn("Intento de reserva en fecha pasada por usuario {}", cliente.getEmail());
             throw new BadRequestException("No se puede reservar en una fecha pasada.");
         }
+
+        validarHorarioReserva(fecha, horaFinReserva);
 
         validarDuracionReserva(fecha, horaFinReserva);
 
@@ -290,5 +294,64 @@ public class ReservationServiceImpl implements ReservationService {
         if (horas > 3) {
             throw new IllegalArgumentException("Una reserva no puede durar más de 3 horas.");
         }
+    }
+
+    /**
+     * Valida que la reserva esté dentro del horario permitido:
+     * - Lunes a viernes: 8:00 - 22:00
+     * - Sábado: 8:00 - 16:00
+     * - Domingo y festivos: no permitido
+     */
+    private void validarHorarioReserva(LocalDateTime inicio, LocalDateTime fin) {
+
+        // Verificar que sea día permitido
+        switch (inicio.getDayOfWeek()) {
+            case SUNDAY -> throw new BadRequestException("No se permiten reservas los domingos.");
+            case SATURDAY -> {
+                if (inicio.getHour() < 8 || fin.getHour() > 16) {
+                    throw new BadRequestException("El horario de sábado es de 8:00 a 16:00.");
+                }
+            }
+            default -> { // Lunes a viernes
+                if (inicio.getHour() < 8 || fin.getHour() > 22) {
+                    throw new BadRequestException("El horario de lunes a viernes es de 8:00 a 22:00.");
+                }
+            }
+        }
+
+        // Validar que la fecha de inicio y fin estén en el mismo día
+        if (!inicio.toLocalDate().equals(fin.toLocalDate())) {
+            throw new BadRequestException("La reserva debe iniciar y terminar el mismo día.");
+        }
+
+        // Validar festivos en Colombia
+        if (esFestivoColombia(inicio.toLocalDate())) {
+            throw new BadRequestException("No se permiten reservas en festivos.");
+        }
+    }
+
+    /**
+     * Verifica si una fecha es festivo en Colombia (lista estática).
+     */
+    private boolean esFestivoColombia(LocalDate fecha) {
+        Set<LocalDate> festivos = Set.of(
+                // 2026
+                LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 4, 2),
+                LocalDate.of(2026, 4, 3),
+                LocalDate.of(2026, 5, 1),
+                LocalDate.of(2026, 5, 18),
+                LocalDate.of(2026, 6, 8),
+                LocalDate.of(2026, 6, 15),
+                LocalDate.of(2026, 7, 20),
+                LocalDate.of(2026, 8, 7),
+                LocalDate.of(2026, 8, 17),
+                LocalDate.of(2026, 10, 12),
+                LocalDate.of(2026, 11, 2),
+                LocalDate.of(2026, 11, 16),
+                LocalDate.of(2026, 12, 8),
+                LocalDate.of(2026, 12, 25));
+
+        return festivos.contains(fecha);
     }
 }

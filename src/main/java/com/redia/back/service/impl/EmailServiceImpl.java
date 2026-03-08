@@ -1,7 +1,6 @@
 package com.redia.back.service.impl;
 
 import com.redia.back.dto.EmailDTO;
-import com.redia.back.exception.BadRequestException;
 import com.redia.back.service.EmailService;
 import org.simplejavamail.api.email.Email;
 import org.simplejavamail.api.mailer.Mailer;
