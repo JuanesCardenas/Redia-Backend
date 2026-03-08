@@ -41,6 +41,9 @@ public class AuthServiceImpl implements AuthService {
     @Value("${google.client-id}")
     private String googleClientId;
 
+    @Value("${google.recaptcha.enabled}")
+    private boolean recaptchaEnabled;
+
     public AuthServiceImpl(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             EmailService emailService,
@@ -55,6 +58,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User register(RegisterRequestDTO request) {
+
+        if (recaptchaEnabled && (request.recaptchaToken() == null || request.recaptchaToken().isBlank())) {
+            throw new BadRequestException("Validación de reCAPTCHA fallida.");
+        }
 
         if (userRepository.existsByEmail(request.email())) {
             throw new BadRequestException("El correo ya está registrado.");

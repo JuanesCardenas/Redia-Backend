@@ -1,5 +1,6 @@
 package com.redia.back.controller;
 
+import com.google.api.client.util.Value;
 import com.redia.back.dto.*;
 import com.redia.back.exception.MissingCredentialsException;
 import com.redia.back.model.User;
@@ -28,6 +29,8 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RecaptchaService recaptchaService;
+    @Value("${google.recaptcha.enabled:false}")
+    private boolean recaptchaEnabled;
 
     public AuthController(AuthService authService,
             AuthenticationManager authenticationManager,
@@ -51,7 +54,7 @@ public class AuthController {
 
         logger.info("Intento de registro para email: {}", email);
 
-        if (!recaptchaService.validateRecaptcha(recaptchaToken)) {
+        if (recaptchaEnabled && !recaptchaService.validateRecaptcha(recaptchaToken)) {
             throw new BadRequestException("Validación de reCAPTCHA fallida.");
         }
 
@@ -136,7 +139,7 @@ public class AuthController {
 
         logger.info("Solicitud de código de verificación para email: {}", request.email());
 
-        if (!recaptchaService.validateRecaptcha(request.recaptchaToken())) {
+        if (recaptchaEnabled && !recaptchaService.validateRecaptcha(request.recaptchaToken())) {
             throw new BadRequestException("Validación de reCAPTCHA fallida.");
         }
 

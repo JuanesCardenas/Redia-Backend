@@ -24,5 +24,6 @@ google:
   client-id: 115728163825-koff0lsutk5h271dlck8s23rnt37sq42.apps.googleusercontent.com
   client-secret: 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
   recaptcha:
+    enabled: true
     secret: 6Lcg2IMsAAAAAOJC9s-bZ4RyVeTRdJAfZlSE9GpU
     url: https://www.google.com/recaptcha/api/siteverify
