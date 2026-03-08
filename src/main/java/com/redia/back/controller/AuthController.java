@@ -55,7 +55,7 @@ public class AuthController {
             throw new BadRequestException("Validación de reCAPTCHA fallida.");
         }
 
-        RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, password, telefono, role, fotoUrl,
+        RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, telefono, password, role, fotoUrl,
                 recaptchaToken);
 
         authService.register(request);
