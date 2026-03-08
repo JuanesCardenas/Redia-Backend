@@ -86,6 +86,23 @@ public class ReservationServiceImpl implements ReservationService {
 
         int numeroPersonas = request.numeroPersonas();
 
+        // ===========================
+        // Validar máximo de personas
+        // ===========================
+        if (numeroPersonas <= 0) {
+            throw new BadRequestException("El número de personas debe ser mayor a 0.");
+        }
+
+        List<DinningTable> todasMesas = dinningTableRepository.findAll();
+        int capacidadTotal = todasMesas.stream().mapToInt(DinningTable::getCapacidad).sum();
+
+        if (numeroPersonas > capacidadTotal) {
+            logger.warn("Intento de reserva con {} personas, excede capacidad total {}", numeroPersonas,
+                    capacidadTotal);
+            throw new BadRequestException(
+                    "El número de personas excede la capacidad máxima del restaurante: " + capacidadTotal);
+        }
+
         Reservation reserva = new Reservation(
                 cliente,
                 fecha,
