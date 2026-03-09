@@ -20,7 +20,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/admin/dinning-tables")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ADMINISTRADOR')")
 public class DinningTableController {
 
     private final DinningTableService dinningTableService;
