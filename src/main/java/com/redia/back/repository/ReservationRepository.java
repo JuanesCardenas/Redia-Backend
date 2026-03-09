@@ -32,6 +32,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, String
     List<Reservation> findByEstado(ReservationStatus estado);
 
     /**
+     * Busca reservas por estado cuya hora de fin ya haya pasado.
+     */
+    List<Reservation> findByEstadoAndHoraFinReservaBefore(ReservationStatus estado, LocalDateTime hora);
+
+    /**
      * Busca reservas que se solapan con un rango de tiempo.
      */
     @Query("""

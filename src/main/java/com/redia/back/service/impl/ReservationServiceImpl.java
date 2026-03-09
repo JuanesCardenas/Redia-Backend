@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -499,4 +500,23 @@ public class ReservationServiceImpl implements ReservationService {
         }
     }
 
+    /**
+     * Tarea programada (Cron/FixedRate) para finalizar automáticamente
+     * las reservas confirmadas cuya hora de fin ya ha pasado.
+     */
+    @Scheduled(fixedRate = 60000) // Se ejecuta cada 60 segundos
+    public void finalizarReservasExpiradas() {
+        List<Reservation> expiradas = reservationRepository
+                .findByEstadoAndHoraFinReservaBefore(ReservationStatus.CONFIRMADA, LocalDateTime.now());
+
+        if (!expiradas.isEmpty()) {
+            logger.info("Finalizando automáticamente {} reservas expiradas...", expiradas.size());
+
+            for (Reservation r : expiradas) {
+                r.setEstado(ReservationStatus.FINALIZADA);
+            }
+            reservationRepository.saveAll(expiradas);
+            logger.info("Reservas finalizadas con éxito.");
+        }
+    }
 }
