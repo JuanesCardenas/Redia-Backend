@@ -1,7 +1,4 @@
 spring:
-  profiles:
-    active: local
-
   datasource:
     url: ${DB_URL:jdbc:mariadb://localhost:3306/redia_restaurante}
     username: ${DB_USERNAME:root}

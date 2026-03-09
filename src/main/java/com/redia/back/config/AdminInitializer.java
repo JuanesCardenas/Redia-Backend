@@ -7,9 +7,16 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class AdminInitializer {
+
+    @Value("${ADMIN_EMAIL:admin@redia.com}")
+    private String adminEmail;
+
+    @Value("${ADMIN_PASSWORD:Admin123}")
+    private String adminPassword;
 
     @Bean
     CommandLineRunner crearAdmin(UserRepository userRepository,
@@ -17,21 +24,19 @@ public class AdminInitializer {
 
         return args -> {
 
-            String adminEmail = "admin@redia.com";
-
             if (!userRepository.existsByEmail(adminEmail)) {
 
                 User admin = new User();
                 admin.setNombre("Administrador");
                 admin.setEmail(adminEmail);
                 admin.setTelefono("3000000000");
-                admin.setPassword(passwordEncoder.encode("Admin123"));
+                admin.setPassword(passwordEncoder.encode(adminPassword));
                 admin.setRole(Role.ADMINISTRADOR);
                 admin.setActivo(true);
 
                 userRepository.save(admin);
 
-                System.out.println("ADMINISTRADOR CREADO: admin@redia.com / Admin123");
+                System.out.println("ADMINISTRADOR CREADO: " + adminEmail);
             }
         };
     }
