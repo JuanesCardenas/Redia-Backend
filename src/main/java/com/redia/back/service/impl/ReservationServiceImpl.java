@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
 
 /**
  * Implementación del servicio de gestión de reservas.
- * Gestiona el ciclo completo de las reservas incluyendo notificaciones por correo.
+ * Gestiona el ciclo completo de las reservas incluyendo notificaciones por
+ * correo.
  */
 @Service
 public class ReservationServiceImpl implements ReservationService {
@@ -129,7 +130,8 @@ public class ReservationServiceImpl implements ReservationService {
                 "Detalles de tu solicitud:\n" +
                 "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
                 "ID de Reserva: " + reserva.getId() + "\n" +
-                "Fecha y Hora: " + fecha.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n" +
+                "Fecha y Hora: " + fecha.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n"
+                +
                 "Número de Personas: " + numeroPersonas + "\n" +
                 "Estado: SOLICITADA\n" +
                 "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
@@ -143,8 +145,7 @@ public class ReservationServiceImpl implements ReservationService {
             emailService.sendMail(new com.redia.back.dto.EmailDTO(
                     "Tu reserva ha sido solicitada - Redia Restaurante",
                     cuerpoReservaSolicitada,
-                    cliente.getEmail()
-            ));
+                    cliente.getEmail()));
         } catch (Exception e) {
             logger.error("Error enviando correo de reserva solicitada: {}", e.getMessage());
         }
@@ -226,7 +227,7 @@ public class ReservationServiceImpl implements ReservationService {
         logger.info("Reserva {} confirmada con {} mesas",
                 reservaId, mesasSeleccionadas.size());
 
-        //  Enviar notificación de reserva confirmada
+        // Enviar notificación de reserva confirmada
         String mesasInfo = reserva.getMesas().stream()
                 .map(DinningTable::getNombre)
                 .reduce((a, b) -> a + ", " + b)
@@ -237,7 +238,9 @@ public class ReservationServiceImpl implements ReservationService {
                 "Detalles de tu reserva:\n" +
                 "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
                 "ID de Reserva: " + reserva.getId() + "\n" +
-                "Fecha y Hora: " + reserva.getFechaReserva().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n" +
+                "Fecha y Hora: "
+                + reserva.getFechaReserva().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                + "\n" +
                 "Número de Personas: " + reserva.getNumeroPersonas() + "\n" +
                 "Número de Mesas: " + reserva.getNumeroMesas() + "\n" +
                 "Mesas: " + mesasInfo + "\n" +
@@ -252,8 +255,7 @@ public class ReservationServiceImpl implements ReservationService {
             emailService.sendMail(new com.redia.back.dto.EmailDTO(
                     "¡Tu reserva ha sido confirmada! - Redia Restaurante",
                     cuerpoReservaConfirmada,
-                    reserva.getCliente().getEmail()
-            ));
+                    reserva.getCliente().getEmail()));
         } catch (Exception e) {
             logger.error("Error enviando correo de reserva confirmada: {}", e.getMessage());
         }
@@ -324,7 +326,9 @@ public class ReservationServiceImpl implements ReservationService {
                 "Detalles de tu reserva:\n" +
                 "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
                 "ID de Reserva: " + reserva.getId() + "\n" +
-                "Fecha y Hora: " + reserva.getFechaReserva().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n" +
+                "Fecha y Hora: "
+                + reserva.getFechaReserva().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                + "\n" +
                 "Número de Personas: " + reserva.getNumeroPersonas() + "\n" +
                 "Mesas: " + mesasInfo + "\n" +
                 "Estado: CONFIRMADA\n" +
@@ -337,8 +341,7 @@ public class ReservationServiceImpl implements ReservationService {
             emailService.sendMail(new com.redia.back.dto.EmailDTO(
                     "🎉 ¡Tu reserva ha sido confirmada! - Redia Restaurante",
                     cuerpoConfirmacion,
-                    reserva.getCliente().getEmail()
-            ));
+                    reserva.getCliente().getEmail()));
         } catch (Exception e) {
             logger.error("Error enviando correo de confirmación: {}", e.getMessage());
         }
@@ -356,7 +359,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         logger.info("Reserva {} rechazada", reservaId);
 
-        //  Enviar notificación de rechazo
+        // Enviar notificación de rechazo
         String cuerpoRechazo = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
                 "Lamentablemente, tu reserva ha sido rechazada.\n\n" +
                 "ID de Reserva: " + reserva.getId() + "\n" +
@@ -371,8 +374,7 @@ public class ReservationServiceImpl implements ReservationService {
             emailService.sendMail(new com.redia.back.dto.EmailDTO(
                     "Tu reserva ha sido rechazada - Redia Restaurante",
                     cuerpoRechazo,
-                    reserva.getCliente().getEmail()
-            ));
+                    reserva.getCliente().getEmail()));
         } catch (Exception e) {
             logger.error("Error enviando correo de rechazo: {}", e.getMessage());
         }
@@ -411,8 +413,7 @@ public class ReservationServiceImpl implements ReservationService {
             emailService.sendMail(new com.redia.back.dto.EmailDTO(
                     "Tu reserva ha sido cancelada - Redia Restaurante",
                     cuerpoCancelacion,
-                    reserva.getCliente().getEmail()
-            ));
+                    reserva.getCliente().getEmail()));
         } catch (Exception e) {
             logger.error("Error enviando correo de cancelación: {}", e.getMessage());
         }
@@ -443,8 +444,7 @@ public class ReservationServiceImpl implements ReservationService {
             emailService.sendMail(new com.redia.back.dto.EmailDTO(
                     "Gracias por tu visita - Redia Restaurante",
                     cuerpoFinalizacion,
-                    reserva.getCliente().getEmail()
-            ));
+                    reserva.getCliente().getEmail()));
         } catch (Exception e) {
             logger.error("Error enviando correo de finalización: {}", e.getMessage());
         }
@@ -471,7 +471,7 @@ public class ReservationServiceImpl implements ReservationService {
      * Valida que la reserva esté dentro del horario permitido:
      * - Lunes a viernes: 8:00 - 22:00
      * - Sábado: 8:00 - 16:00
-     * - Domingo y festivos: no permitido
+     * - Domingo: no permitido
      */
     private void validarHorarioReserva(LocalDateTime inicio, LocalDateTime fin) {
 
@@ -494,36 +494,6 @@ public class ReservationServiceImpl implements ReservationService {
         if (!inicio.toLocalDate().equals(fin.toLocalDate())) {
             throw new BadRequestException("La reserva debe iniciar y terminar el mismo día.");
         }
-
-        // Validar festivos en Colombia
-        if (esFestivoColombia(inicio.toLocalDate())) {
-            throw new BadRequestException("No se permiten reservas en festivos.");
-        }
     }
 
-    /**
-     * Verifica si una fecha es festivo en Colombia (lista estática).
-     */
-    private boolean esFestivoColombia(LocalDate fecha) {
-        Set<LocalDate> festivos = Set.of(
-                // 2026
-                LocalDate.of(2026, 1, 1),
-                LocalDate.of(2026, 4, 2),
-                LocalDate.of(2026, 4, 3),
-                LocalDate.of(2026, 5, 1),
-                LocalDate.of(2026, 5, 18),
-                LocalDate.of(2026, 6, 8),
-                LocalDate.of(2026, 6, 15),
-                LocalDate.of(2026, 7, 20),
-                LocalDate.of(2026, 8, 7),
-                LocalDate.of(2026, 8, 17),
-                LocalDate.of(2026, 10, 12),
-                LocalDate.of(2026, 11, 2),
-                LocalDate.of(2026, 11, 16),
-                LocalDate.of(2026, 12, 8),
-                LocalDate.of(2026, 12, 25));
-
-        return festivos.contains(fecha);
-    }
 }
-
