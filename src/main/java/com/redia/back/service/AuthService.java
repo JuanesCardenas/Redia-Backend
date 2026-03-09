@@ -11,6 +11,8 @@ public interface AuthService {
 
     User register(RegisterRequestDTO request);
 
+    User registerAdmin(RegisterRequestDTO request);
+
     void recoverPassword(PasswordRecoveryRequestDTO request);
 
     User findByEmail(String email);

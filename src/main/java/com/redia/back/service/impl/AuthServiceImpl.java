@@ -58,8 +58,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User register(RegisterRequestDTO request) {
+        return registerInternal(request, true);
+    }
 
-        if (recaptchaEnabled && (request.recaptchaToken() == null || request.recaptchaToken().isBlank())) {
+    @Override
+    public User registerAdmin(RegisterRequestDTO request) {
+        return registerInternal(request, false);
+    }
+
+    private User registerInternal(RegisterRequestDTO request, boolean checkRecaptcha) {
+        if (checkRecaptcha && recaptchaEnabled
+                && (request.recaptchaToken() == null || request.recaptchaToken().isBlank())) {
             throw new BadRequestException("Validación de reCAPTCHA fallida.");
         }
 
@@ -349,7 +358,6 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("La contraseña es obligatoria.");
         }
         user.setPassword(passwordEncoder.encode(password));
-
 
         if (foto != null && !foto.isEmpty()) {
             try {
