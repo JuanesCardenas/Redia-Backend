@@ -3,6 +3,8 @@ package com.redia.back.controller;
 import com.redia.back.dto.ConfirmReservationRequestDTO;
 import com.redia.back.dto.CreateReservationRequestDTO;
 import com.redia.back.dto.ReservationResponseDTO;
+import com.redia.back.model.DinningTable;
+import com.redia.back.service.DinningTableService;
 import com.redia.back.service.ReservationService;
 
 import org.slf4j.Logger;
@@ -23,9 +25,11 @@ public class ReservationController {
     private static final Logger logger = LoggerFactory.getLogger(ReservationController.class);
 
     private final ReservationService reservationService;
+    private final DinningTableService dinningTableService;
 
-    public ReservationController(ReservationService reservationService) {
+    public ReservationController(ReservationService reservationService, DinningTableService dinningTableService) {
         this.reservationService = reservationService;
+        this.dinningTableService = dinningTableService;
     }
 
     /**
@@ -60,6 +64,15 @@ public class ReservationController {
 
         return ResponseEntity.ok(
                 reservationService.obtenerTodas());
+    }
+
+    /**
+     * Obtener todas las mesas registradas (para recepcionista: asignación en
+     * confirmación).
+     */
+    @GetMapping("/tables")
+    public ResponseEntity<List<DinningTable>> getMesas() {
+        return ResponseEntity.ok(dinningTableService.getAllDinningTables());
     }
 
     /**

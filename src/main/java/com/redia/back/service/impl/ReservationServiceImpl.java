@@ -276,6 +276,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .map(r -> new ReservationResponseDTO(
                         r.getId(),
                         cliente.getEmail(),
+                        cliente.getNombre(),
                         r.getFechaReserva(),
                         r.getHoraFinReserva(),
                         r.getNumeroPersonas(),
@@ -296,6 +297,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .map(r -> new ReservationResponseDTO(
                         r.getId(),
                         r.getCliente().getEmail(),
+                        r.getCliente().getNombre(),
                         r.getFechaReserva(),
                         r.getHoraFinReserva(),
                         r.getNumeroPersonas(),
