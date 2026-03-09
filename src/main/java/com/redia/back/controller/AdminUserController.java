@@ -45,18 +45,20 @@ public class AdminUserController {
     @PostMapping
     public ResponseEntity<String> registerUser(
 
-            @Valid @RequestParam String nombre,
-            @Valid @RequestParam String email,
-            @Valid @RequestParam String password,
-            @Valid @RequestParam String telefono,
-            @Valid @RequestParam String role,
+            @RequestParam String nombre,
+            @RequestParam String email,
+            @RequestParam String password,
+            @RequestParam String telefono,
+            @RequestParam String role,
+            @RequestParam String recaptchaToken,
             @RequestParam(required = false) MultipartFile fotoUrl) {
 
         logger.info("ADMIN registrando usuario con email: {}", email);
 
-        RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, telefono, password, role, fotoUrl, null);
+        RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, telefono, password, role, fotoUrl,
+                recaptchaToken);
 
-        authService.registerAdmin(request);
+        authService.register(request);
 
         logger.info("Usuario registrado por ADMIN: {}", email);
 
