@@ -6,11 +6,14 @@ import com.redia.back.model.User;
 import com.redia.back.service.AuthService;
 import com.redia.back.service.UserAdminService;
 
+import com.redia.back.exception.BadRequestException;
 import jakarta.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -31,11 +34,17 @@ public class AdminUserController {
 
     private final AuthService authService;
     private final UserAdminService userAdminService;
+    private final com.redia.back.service.RecaptchaService recaptchaService;
+
+    @Value("${google.recaptcha.enabled:false}")
+    private boolean recaptchaEnabled;
 
     public AdminUserController(AuthService authService,
-            UserAdminService userAdminService) {
+            UserAdminService userAdminService,
+            com.redia.back.service.RecaptchaService recaptchaService) {
         this.authService = authService;
         this.userAdminService = userAdminService;
+        this.recaptchaService = recaptchaService;
     }
 
     /**
@@ -54,6 +63,10 @@ public class AdminUserController {
             @RequestParam(required = false) MultipartFile fotoUrl) {
 
         logger.info("ADMIN registrando usuario con email: {}", email);
+
+        if (recaptchaEnabled && !recaptchaService.validateRecaptcha(recaptchaToken)) {
+            throw new BadRequestException("Validación de reCAPTCHA fallida.");
+        }
 
         RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, telefono, password, role, fotoUrl,
                 recaptchaToken);
