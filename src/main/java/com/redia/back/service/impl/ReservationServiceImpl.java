@@ -11,6 +11,7 @@ import com.redia.back.model.User;
 import com.redia.back.repository.DinningTableRepository;
 import com.redia.back.repository.ReservationRepository;
 import com.redia.back.repository.UserRepository;
+import com.redia.back.service.EmailService;
 import com.redia.back.service.ReservationService;
 
 import org.slf4j.Logger;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * Implementación del servicio de gestión de reservas.
+ * Gestiona el ciclo completo de las reservas incluyendo notificaciones por correo.
  */
 @Service
 public class ReservationServiceImpl implements ReservationService {
@@ -39,15 +41,18 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final DinningTableRepository dinningTableRepository;
+    private final EmailService emailService;
 
     public ReservationServiceImpl(
             ReservationRepository reservationRepository,
             UserRepository userRepository,
-            DinningTableRepository dinningTableRepository) {
+            DinningTableRepository dinningTableRepository,
+            EmailService emailService) {
 
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.dinningTableRepository = dinningTableRepository;
+        this.emailService = emailService;
     }
 
     /**
@@ -116,6 +121,33 @@ public class ReservationServiceImpl implements ReservationService {
         reservationRepository.save(reserva);
 
         logger.info("Reserva solicitada con id {}", reserva.getId());
+
+        // Enviar notificación de reserva solicitada
+        String cuerpoReservaSolicitada = "Estimado/a " + cliente.getNombre() + ",\n\n" +
+                "¡Bienvenido a Redia Restaurante!\n\n" +
+                "Tu solicitud de reserva ha sido recibida exitosamente.\n\n" +
+                "Detalles de tu solicitud:\n" +
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+                "ID de Reserva: " + reserva.getId() + "\n" +
+                "Fecha y Hora: " + fecha.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n" +
+                "Número de Personas: " + numeroPersonas + "\n" +
+                "Estado: SOLICITADA\n" +
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
+                "Tu reserva está en espera de confirmación por parte de nuestro equipo.\n" +
+                "Recibirás una notificación cuando sea confirmada.\n\n" +
+                "Si tienes alguna pregunta, no dudes en contactarnos.\n\n" +
+                "Saludos cordiales,\n" +
+                "Equipo de Redia Restaurante";
+
+        try {
+            emailService.sendMail(new com.redia.back.dto.EmailDTO(
+                    "Tu reserva ha sido solicitada - Redia Restaurante",
+                    cuerpoReservaSolicitada,
+                    cliente.getEmail()
+            ));
+        } catch (Exception e) {
+            logger.error("Error enviando correo de reserva solicitada: {}", e.getMessage());
+        }
 
         return new ReservationResponseDTO(
                 reserva.getId(),
@@ -193,6 +225,38 @@ public class ReservationServiceImpl implements ReservationService {
 
         logger.info("Reserva {} confirmada con {} mesas",
                 reservaId, mesasSeleccionadas.size());
+
+        //  Enviar notificación de reserva confirmada
+        String mesasInfo = reserva.getMesas().stream()
+                .map(DinningTable::getNombre)
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("No especificadas");
+
+        String cuerpoReservaConfirmada = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
+                "¡Excelente noticias! Tu reserva ha sido confirmada.\n\n" +
+                "Detalles de tu reserva:\n" +
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+                "ID de Reserva: " + reserva.getId() + "\n" +
+                "Fecha y Hora: " + reserva.getFechaReserva().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n" +
+                "Número de Personas: " + reserva.getNumeroPersonas() + "\n" +
+                "Número de Mesas: " + reserva.getNumeroMesas() + "\n" +
+                "Mesas: " + mesasInfo + "\n" +
+                "Estado: CONFIRMADA\n" +
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
+                "Tu mesa estará lista a la hora indicada. Te recomendamos llegar 10 minutos antes.\n\n" +
+                "¡Te esperamos en Redia Restaurante!\n\n" +
+                "Saludos cordiales,\n" +
+                "Equipo de Redia Restaurante";
+
+        try {
+            emailService.sendMail(new com.redia.back.dto.EmailDTO(
+                    "¡Tu reserva ha sido confirmada! - Redia Restaurante",
+                    cuerpoReservaConfirmada,
+                    reserva.getCliente().getEmail()
+            ));
+        } catch (Exception e) {
+            logger.error("Error enviando correo de reserva confirmada: {}", e.getMessage());
+        }
     }
 
     /**
@@ -248,6 +312,36 @@ public class ReservationServiceImpl implements ReservationService {
         reservationRepository.save(reserva);
 
         logger.info("Reserva {} confirmada", reservaId);
+
+        // Enviar notificación de confirmación
+        String mesasInfo = reserva.getMesas().stream()
+                .map(DinningTable::getNombre)
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("No especificadas");
+
+        String cuerpoConfirmacion = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
+                "¡Excelente noticias! Tu reserva ha sido confirmada.\n\n" +
+                "Detalles de tu reserva:\n" +
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+                "ID de Reserva: " + reserva.getId() + "\n" +
+                "Fecha y Hora: " + reserva.getFechaReserva().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n" +
+                "Número de Personas: " + reserva.getNumeroPersonas() + "\n" +
+                "Mesas: " + mesasInfo + "\n" +
+                "Estado: CONFIRMADA\n" +
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
+                "Tu mesa estará lista a la hora indicada.\n\n" +
+                "Saludos cordiales,\n" +
+                "Equipo de Redia Restaurante";
+
+        try {
+            emailService.sendMail(new com.redia.back.dto.EmailDTO(
+                    "🎉 ¡Tu reserva ha sido confirmada! - Redia Restaurante",
+                    cuerpoConfirmacion,
+                    reserva.getCliente().getEmail()
+            ));
+        } catch (Exception e) {
+            logger.error("Error enviando correo de confirmación: {}", e.getMessage());
+        }
     }
 
     @Override
@@ -261,6 +355,27 @@ public class ReservationServiceImpl implements ReservationService {
         reservationRepository.save(reserva);
 
         logger.info("Reserva {} rechazada", reservaId);
+
+        //  Enviar notificación de rechazo
+        String cuerpoRechazo = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
+                "Lamentablemente, tu reserva ha sido rechazada.\n\n" +
+                "ID de Reserva: " + reserva.getId() + "\n" +
+                "Estado: RECHAZADA\n\n" +
+                "Esto puede deberse a la indisponibilidad de mesas en el horario solicitado.\n" +
+                "Te invitamos a intentar con otra fecha u hora.\n\n" +
+                "Para más información, puedes contactarnos directamente.\n\n" +
+                "Saludos cordiales,\n" +
+                "Equipo de Redia Restaurante";
+
+        try {
+            emailService.sendMail(new com.redia.back.dto.EmailDTO(
+                    "Tu reserva ha sido rechazada - Redia Restaurante",
+                    cuerpoRechazo,
+                    reserva.getCliente().getEmail()
+            ));
+        } catch (Exception e) {
+            logger.error("Error enviando correo de rechazo: {}", e.getMessage());
+        }
     }
 
     @Override
@@ -281,6 +396,26 @@ public class ReservationServiceImpl implements ReservationService {
         reservationRepository.save(reserva);
 
         logger.info("Reserva {} cancelada", reservaId);
+
+        // Enviar notificación de cancelación
+        String cuerpoCancelacion = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
+                "Tu reserva ha sido cancelada.\n\n" +
+                "ID de Reserva: " + reserva.getId() + "\n" +
+                "Estado: CANCELADA\n\n" +
+                "Si tienes alguna pregunta sobre esta cancelación, por favor contacta con nuestro equipo.\n\n" +
+                "Esperamos tu próxima visita a Redia Restaurante.\n\n" +
+                "Saludos cordiales,\n" +
+                "Equipo de Redia Restaurante";
+
+        try {
+            emailService.sendMail(new com.redia.back.dto.EmailDTO(
+                    "Tu reserva ha sido cancelada - Redia Restaurante",
+                    cuerpoCancelacion,
+                    reserva.getCliente().getEmail()
+            ));
+        } catch (Exception e) {
+            logger.error("Error enviando correo de cancelación: {}", e.getMessage());
+        }
     }
 
     @Override
@@ -294,6 +429,25 @@ public class ReservationServiceImpl implements ReservationService {
         reservationRepository.save(reserva);
 
         logger.info("Reserva {} finalizada", reservaId);
+
+        // Enviar notificación de finalización
+        String cuerpoFinalizacion = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
+                "¡Gracias por tu visita a Redia Restaurante!\n\n" +
+                "Esperamos que hayas disfrutado de una excelente experiencia con nosotros.\n" +
+                "Tu satisfacción es nuestra prioridad.\n\n" +
+                "Te invitamos a visitarnos nuevamente pronto.\n\n" +
+                "Saludos cordiales,\n" +
+                "Equipo de Redia Restaurante";
+
+        try {
+            emailService.sendMail(new com.redia.back.dto.EmailDTO(
+                    "Gracias por tu visita - Redia Restaurante",
+                    cuerpoFinalizacion,
+                    reserva.getCliente().getEmail()
+            ));
+        } catch (Exception e) {
+            logger.error("Error enviando correo de finalización: {}", e.getMessage());
+        }
     }
 
     private void validarDuracionReserva(LocalDateTime inicio, LocalDateTime fin) {
@@ -372,3 +526,4 @@ public class ReservationServiceImpl implements ReservationService {
         return festivos.contains(fecha);
     }
 }
+
