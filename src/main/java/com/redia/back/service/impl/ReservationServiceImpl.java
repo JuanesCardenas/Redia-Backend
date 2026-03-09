@@ -153,6 +153,7 @@ public class ReservationServiceImpl implements ReservationService {
         return new ReservationResponseDTO(
                 reserva.getId(),
                 cliente.getEmail(),
+                cliente.getNombre(),
                 reserva.getFechaReserva(),
                 reserva.getHoraFinReserva(),
                 reserva.getNumeroPersonas(),
