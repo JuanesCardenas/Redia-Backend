@@ -30,11 +30,13 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
         with:
-          name: java-app
-          path: '${{ github.workspace }}/build/libs/*.jar'
+          app-name: 'redia-backend-2'
+          slot-name: 'Production'
+          package: 'Redia-Backend-1.0-SNAPSHOT.jar'
 
   deploy:
     runs-on: ubuntu-latest
