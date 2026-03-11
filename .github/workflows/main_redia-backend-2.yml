@@ -38,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/build/libs/*.jar'  # 👈 Cambia a *.jar
+          path: '${{ github.workspace }}/build/libs/!(*plain).jar'  # 👈 Cambia a *.jar
 
   deploy:
     runs-on: ubuntu-latest
