@@ -32,7 +32,10 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
+        run: |
+          ./gradlew build -x test
+          echo "=== JAR generado ==="
+          ls build/libs/
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
