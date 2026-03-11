@@ -64,7 +64,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(
                 List.of("http://localhost:4200", "http://localhost:5173",
-                        "https://redia-frontend-dubwawhkgwaefkgu.mexicocentral-01.azurewebsites.net")); // Frontend
+                        "https://redia-frontend-dubwawhkgwaefkgu.mexicocentral-01.azurewebsites.net",
+                        "https://polite-ground-04850fb1e.2.azurestaticapps.net")); // Frontend
         // origins
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
