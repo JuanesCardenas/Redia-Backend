@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy JAR app to Azure Web App - redia-backend-2
 
 on:
@@ -17,7 +14,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -32,30 +29,33 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: |
-          ./gradlew build -x test
-          echo "=== JAR generado ==="
-          ls build/libs/
+        run: ./gradlew build -x test
+
+      - name: Ver JAR generado  # 👈 Agrega esto para ver el nombre exacto
+        run: ls -la build/libs/
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/build/libs/Redia-Backend-1.0-SNAPSHOT.jar'
+          path: '${{ github.workspace }}/build/libs/*.jar'  # 👈 Cambia a *.jar
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-  
+      id-token: write
+      contents: read
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: java-app
-      
+
+      - name: Ver JAR descargado
+        run: ls -la
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -64,9 +64,8 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D7B590441013409BADF17DA1420CB02C }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'redia-backend-2'
           slot-name: 'Production'
-          package: 'Redia-Backend-1.0-SNAPSHOT.jar'
+          package: '*.jar'
