@@ -62,11 +62,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        // Configuracion CORS frontend
         configuration.setAllowedOrigins(
-                List.of("http://localhost:4200", "http://localhost:5173",
+                List.of("http://localhost:4200",
+                        "http://localhost:5173",
                         "https://redia-frontend-dubwawhkgwaefkgu.mexicocentral-01.azurewebsites.net",
-                        "https://polite-ground-04850fb1e.2.azurestaticapps.net")); // Frontend
-        // origins
+                        "https://polite-ground-04850fb1e.2.azurestaticapps.net",
+                        "https://thankful-pebble-01e3fc91e.2.azurestaticapps.net"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
