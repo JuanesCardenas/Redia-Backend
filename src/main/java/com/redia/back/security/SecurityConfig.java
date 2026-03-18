@@ -17,7 +17,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 /**
- * Configuración principal de seguridad con Spring Security.
+ * Configuración principal de seguridad de la aplicación usando Spring Security.
+ *
+ * Define las reglas de autenticación, autorización, CORS y gestión de sesiones.
+ * La aplicación utiliza autenticación stateless basada en JWT, por lo que no
+ * se mantiene ningún estado de sesión en el servidor.
  */
 @Configuration
 @EnableMethodSecurity
@@ -29,51 +33,91 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+    /**
+     * Define la cadena de filtros de seguridad principal de la aplicación.
+     *
+     * Configura las siguientes reglas:
+     * CORS: usando la configuración definida en {@link #corsConfigurationSource()}
+     * CSRF: deshabilitado, ya que se usa autenticación stateless con JWT
+     * Sesiones: política STATELESS, no se crean sesiones en el servidor
+     * Rutas públicas: autenticación, Swagger, Actuator (Prometheus y Health)
+     * Resto de rutas: requieren autenticación JWT válida
+     * 
+     * @param http objeto de configuración de seguridad HTTP provisto por Spring
+     * @return cadena de filtros de seguridad configurada
+     * @throws Exception si ocurre un error durante la configuración de seguridad
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/actuator/prometheus",
-                                "/actuator/health")
-                        .permitAll()
+                                "/api/auth/**", // Endpoints de login y registro
+                                "/v3/api-docs/**", // Documentación OpenAPI
+                                "/swagger-ui/**", // Interfaz Swagger UI
+                                "/swagger-ui.html", // Página principal de Swagger
+                                "/actuator/prometheus", // Métricas para Grafana/Prometheus
+                                "/actuator/health" // Health check de Azure App Service
+                        ).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    /**
+     * Define el encoder de contraseñas usado para cifrar y verificar contraseñas de
+     * usuarios.
+     *
+     * Utiliza BCrypt con su factor de costo por defecto, lo que provee un balance
+     * adecuado entre seguridad y rendimiento.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Expone el {@link AuthenticationManager} como bean de Spring para ser
+     * inyectado
+     * en otros componentes que lo requieran, como el servicio de autenticación.
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    /**
+     * Configura las reglas de CORS (Cross-Origin Resource Sharing) para la
+     * aplicación.
+     *
+     * Define los orígenes permitidos (frontends conocidos y Grafana Cloud),
+     * los métodos HTTP aceptados, y permite el envío de credenciales en las
+     * peticiones.
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Configuracion CORS frontend
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:4200",
-                        "http://localhost:5173",
-                        "https://redia-frontend-dubwawhkgwaefkgu.mexicocentral-01.azurewebsites.net",
-                        "https://polite-ground-04850fb1e.2.azurestaticapps.net",
-                        "https://thankful-pebble-01e3fc91e.2.azurestaticapps.net"));
+
+        configuration.setAllowedOrigins(List.of(
+                // Entornos de desarrollo local
+                "http://localhost:4200",
+                "http://localhost:5173",
+                // Frontends desplegados en Azure
+                "https://redia-frontend-dubwawhkgwaefkgu.mexicocentral-01.azurewebsites.net",
+                "https://polite-ground-04850fb1e.2.azurestaticapps.net",
+                "https://thankful-pebble-01e3fc91e.2.azurestaticapps.net",
+                // Grafana Cloud
+                "https://rediarestaurante.grafana.net"));
+
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
