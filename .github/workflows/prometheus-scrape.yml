@@ -1,0 +1,27 @@
+name: Scrape Prometheus Metrics
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # permite correrlo manualmente también
+
+jobs:
+  scrape-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scrape metrics from backend
+        run: |
+          curl -s https://redia-backend-2-c4bea5c8cfb5hvh7.brazilsouth-01.azurewebsites.net/actuator/prometheus > metrics.txt
+          echo "Métricas obtenidas:"
+          head -5 metrics.txt
+
+      - name: Push metrics to Grafana Cloud
+        run: |
+          curl -X POST \
+            "${{ secrets.GRAFANA_REMOTE_WRITE_URL }}" \
+            -u "${{ secrets.GRAFANA_USERNAME }}:${{ secrets.GRAFANA_TOKEN }}" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data-binary @metrics.txt \
+            --fail \
+            --silent \
+            --show-error
