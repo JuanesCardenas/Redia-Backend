@@ -325,6 +325,18 @@ public class AuthServiceImpl implements AuthService {
                         return userRepository.save(nuevoUsuario);
                     });
 
+            if (user.isTwoFactorEnabled()) {
+                return new AuthResponseDTO(
+                        null,
+                        null,
+                        user.getEmail(),
+                        user.getRole().name(),
+                        user.getNombre(),
+                        user.getTelefono() != null ? user.getTelefono() : "",
+                        user.getFotoUrl(),
+                        true);
+            }
+
             String accessToken = jwtService.generateToken(user.getEmail(), user.getRole().name());
             String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
