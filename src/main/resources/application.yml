@@ -1,29 +1,42 @@
 spring:
+  application:
+    name: restaurante-app
   datasource:
-    url: jdbc:mariadb://localhost:3306/redia_restaurante
-    username: root
-    password: 12345
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 jwt:
-  secret: RediaRestauranteClaveUltraSecreta123456
-  expiration: 900000           # 15 minutos
-  refresh-expiration: 604800000 # 7 días
+  secret: ${JWT_SECRET}
+  expiration: 900000
+  refresh-expiration: 604800000
 
 google:
-  client-id: 115728163825-koff0lsutk5h271dlck8s23rnt37sq42.apps.googleusercontent.com
-  client-secret: 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
+  client-id: ${GOOGLE_CLIENT_ID}
+  client-secret: ${GOOGLE_CLIENT_SECRET}
+
   recaptcha:
     enabled: true
-    secret: 6Lcg2IMsAAAAAOJC9s-bZ4RyVeTRdJAfZlSE9GpU
+    secret: ${RECAPTCHA_SECRET}
     url: https://www.google.com/recaptcha/api/siteverify
+
+# Configuración de Prometheus y Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true

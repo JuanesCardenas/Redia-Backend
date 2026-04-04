@@ -40,3 +40,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+# 🔐 Configuración local con secretos
+src/main/resources/application-local.yml
