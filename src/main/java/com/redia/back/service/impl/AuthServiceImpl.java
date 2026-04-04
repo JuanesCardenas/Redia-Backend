@@ -19,6 +19,9 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 
+import com.warrenstrange.googleauth.GoogleAuthenticator;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
+import com.warrenstrange.googleauth.GoogleAuthenticatorQRGenerator;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
@@ -377,5 +380,90 @@ public class AuthServiceImpl implements AuthService {
         result.put("telefono", user.getTelefono());
         result.put("fotoUrl", user.getFotoUrl());
         return result;
+    }
+
+    // =========================================================
+    // 2FA (Two-Factor Authentication) Methods
+    // =========================================================
+
+    @Override
+    public TwoFactorSetupResponseDTO setup2FA(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
+
+        GoogleAuthenticator gAuth = new GoogleAuthenticator();
+        GoogleAuthenticatorKey key = gAuth.createCredentials();
+        String secret = key.getKey();
+
+        // Guardar el secret provisionalmente (antes de que el usuario confirme)
+        user.setTwoFactorSecret(secret);
+        userRepository.save(user);
+
+        // Construir URL de QR usando Google Chart API
+        String issuer = "Redia";
+        String qrUrl = GoogleAuthenticatorQRGenerator.getOtpAuthTotpURL(issuer, user.getEmail(), key);
+        String qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" +
+                java.net.URLEncoder.encode(qrUrl, java.nio.charset.StandardCharsets.UTF_8);
+
+        return new TwoFactorSetupResponseDTO(qrCodeUrl, secret);
+    }
+
+    @Override
+    public void enable2FA(String email, int code) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
+
+        if (user.getTwoFactorSecret() == null) {
+            throw new BadRequestException("Primero debes iniciar la configuración del 2FA.");
+        }
+
+        GoogleAuthenticator gAuth = new GoogleAuthenticator();
+        boolean isValid = gAuth.authorize(user.getTwoFactorSecret(), code);
+
+        if (!isValid) {
+            throw new BadRequestException("Código de verificación incorrecto.");
+        }
+
+        user.setTwoFactorEnabled(true);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void disable2FA(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
+
+        user.setTwoFactorEnabled(false);
+        user.setTwoFactorSecret(null);
+        userRepository.save(user);
+    }
+
+    @Override
+    public AuthResponseDTO verifyTwoFactor(TwoFactorVerifyRequestDTO request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
+
+        if (!user.isTwoFactorEnabled() || user.getTwoFactorSecret() == null) {
+            throw new BadRequestException("El usuario no tiene 2FA habilitado.");
+        }
+
+        GoogleAuthenticator gAuth = new GoogleAuthenticator();
+        boolean isValid = gAuth.authorize(user.getTwoFactorSecret(), request.code());
+
+        if (!isValid) {
+            throw new BadRequestException("Código de verificación incorrecto o expirado.");
+        }
+
+        String accessToken = jwtService.generateToken(user.getEmail(), user.getRole().name());
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        return new AuthResponseDTO(
+                accessToken,
+                refreshToken,
+                user.getEmail(),
+                user.getRole().name(),
+                user.getNombre(),
+                user.getTelefono(),
+                user.getFotoUrl());
     }
 }

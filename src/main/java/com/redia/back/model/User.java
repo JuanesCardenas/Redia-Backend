@@ -53,6 +53,16 @@ public class User {
      */
     private String fotoUrl;
 
+    /**
+     * Clave secreta TOTP para la verificación de dos pasos
+     */
+    private String twoFactorSecret;
+
+    /**
+     * Indica si el usuario tiene habilitada la verificación de dos pasos
+     */
+    private boolean twoFactorEnabled = false;
+
     public User() {
     }
 
@@ -151,5 +161,21 @@ public class User {
 
     public void setFotoUrl(String fotoUrl) {
         this.fotoUrl = fotoUrl;
+    }
+
+    public String getTwoFactorSecret() {
+        return twoFactorSecret;
+    }
+
+    public void setTwoFactorSecret(String twoFactorSecret) {
+        this.twoFactorSecret = twoFactorSecret;
+    }
+
+    public boolean isTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(boolean twoFactorEnabled) {
+        this.twoFactorEnabled = twoFactorEnabled;
     }
 }

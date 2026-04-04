@@ -81,6 +81,15 @@ public class AuthController {
 
         User user = authService.findByEmail(request.email());
 
+        // Si el usuario tiene 2FA habilitado, no entregar tokens todavía
+        if (user.isTwoFactorEnabled()) {
+            logger.info("Login requiere 2FA para email: {}", request.email());
+            return ResponseEntity.ok(
+                    new AuthResponseDTO(null, null, user.getEmail(),
+                            user.getRole().name(), user.getNombre(),
+                            user.getTelefono(), user.getFotoUrl(), true));
+        }
+
         String accessToken = jwtService.generateToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
@@ -213,5 +222,56 @@ public class AuthController {
         String email = jwtService.extractEmail(token);
         var result = authService.completeProfile(telefono, password, fotoUrl, email);
         return ResponseEntity.ok(result);
+    }
+
+    // =========================================================
+    // 2FA Endpoints
+    // =========================================================
+
+    /** Inicia el proceso de configuración de 2FA. Devuelve QR y secret. Requiere JWT. */
+    @PostMapping("/2fa/setup")
+    public ResponseEntity<?> setup2FA(@RequestHeader("Authorization") String authHeader) {
+        String email = extractEmailFromHeader(authHeader);
+        logger.info("Iniciando configuración 2FA para: {}", email);
+        var response = authService.setup2FA(email);
+        return ResponseEntity.ok(response);
+    }
+
+    /** Valida el primer código TOTP y activa el 2FA. Requiere JWT. */
+    @PostMapping("/2fa/enable")
+    public ResponseEntity<String> enable2FA(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody java.util.Map<String, Integer> body) {
+        String email = extractEmailFromHeader(authHeader);
+        int code = body.get("code");
+        authService.enable2FA(email, code);
+        logger.info("2FA activado para: {}", email);
+        return ResponseEntity.ok("Verificación de dos pasos activada exitosamente.");
+    }
+
+    /** Desactiva el 2FA del usuario. Requiere JWT. */
+    @PostMapping("/2fa/disable")
+    public ResponseEntity<String> disable2FA(@RequestHeader("Authorization") String authHeader) {
+        String email = extractEmailFromHeader(authHeader);
+        authService.disable2FA(email);
+        logger.info("2FA desactivado para: {}", email);
+        return ResponseEntity.ok("Verificación de dos pasos desactivada.");
+    }
+
+    /** Verifica el código TOTP durante el login y entrega los tokens reales. Público. */
+    @PostMapping("/2fa/verify")
+    public ResponseEntity<AuthResponseDTO> verifyTwoFactor(
+            @RequestBody TwoFactorVerifyRequestDTO request) {
+        logger.info("Verificando código 2FA para email: {}", request.email());
+        AuthResponseDTO response = authService.verifyTwoFactor(request);
+        logger.info("2FA verificado exitosamente para: {}", request.email());
+        return ResponseEntity.ok(response);
+    }
+
+    private String extractEmailFromHeader(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new BadRequestException("Token de autorización requerido.");
+        }
+        return jwtService.extractEmail(authHeader.substring(7));
     }
 }

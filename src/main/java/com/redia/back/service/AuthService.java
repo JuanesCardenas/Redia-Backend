@@ -26,4 +26,13 @@ public interface AuthService {
     AuthResponseDTO googleLogin(GoogleLoginRequestDTO request);
 
     java.util.Map<String, Object> completeProfile(String telefono, String password, MultipartFile foto, String email);
+
+    // 2FA
+    TwoFactorSetupResponseDTO setup2FA(String email);
+
+    void enable2FA(String email, int code);
+
+    void disable2FA(String email);
+
+    AuthResponseDTO verifyTwoFactor(TwoFactorVerifyRequestDTO request);
 }
