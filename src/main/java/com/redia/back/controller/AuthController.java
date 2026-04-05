@@ -5,6 +5,7 @@ import com.redia.back.dto.*;
 import com.redia.back.exception.MissingCredentialsException;
 import com.redia.back.model.User;
 import com.redia.back.security.JwtService;
+import com.redia.back.service.ActionLogService;
 import com.redia.back.service.AuthService;
 import com.redia.back.service.RecaptchaService;
 import com.redia.back.exception.BadRequestException;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,17 +31,21 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RecaptchaService recaptchaService;
+    private final ActionLogService actionLogService;
+
     @Value("${google.recaptcha.enabled:false}")
     private boolean recaptchaEnabled;
 
     public AuthController(AuthService authService,
             AuthenticationManager authenticationManager,
             JwtService jwtService,
-            RecaptchaService recaptchaService) {
+            RecaptchaService recaptchaService,
+            ActionLogService actionLogService) {
         this.authService = authService;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.recaptchaService = recaptchaService;
+        this.actionLogService = actionLogService;
     }
 
     @PostMapping("/register")
@@ -74,10 +80,16 @@ public class AuthController {
 
         logger.info("Intento de login para email: {}", request.email());
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.email(),
-                        request.password()));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.email(),
+                            request.password()));
+        } catch (AuthenticationException ex) {
+            actionLogService.registrarSinUsuario(request.email(),
+                    "LOGIN_FALLIDO", "Credenciales incorrectas");
+            throw ex;
+        }
 
         User user = authService.findByEmail(request.email());
 
@@ -92,6 +104,8 @@ public class AuthController {
 
         String accessToken = jwtService.generateToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        actionLogService.registrar(user, "LOGIN", "Login exitoso");
 
         logger.info("Login exitoso para email: {}", request.email());
 
@@ -228,7 +242,10 @@ public class AuthController {
     // 2FA Endpoints
     // =========================================================
 
-    /** Inicia el proceso de configuración de 2FA. Devuelve QR y secret. Requiere JWT. */
+    /**
+     * Inicia el proceso de configuración de 2FA. Devuelve QR y secret. Requiere
+     * JWT.
+     */
     @PostMapping("/2fa/setup")
     public ResponseEntity<?> setup2FA(@RequestHeader("Authorization") String authHeader) {
         String email = extractEmailFromHeader(authHeader);
@@ -258,7 +275,10 @@ public class AuthController {
         return ResponseEntity.ok("Verificación de dos pasos desactivada.");
     }
 
-    /** Verifica el código TOTP durante el login y entrega los tokens reales. Público. */
+    /**
+     * Verifica el código TOTP durante el login y entrega los tokens reales.
+     * Público.
+     */
     @PostMapping("/2fa/verify")
     public ResponseEntity<AuthResponseDTO> verifyTwoFactor(
             @RequestBody TwoFactorVerifyRequestDTO request) {

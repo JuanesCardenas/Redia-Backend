@@ -6,6 +6,7 @@ import com.redia.back.exception.MissingCredentialsException;
 import com.redia.back.model.Role;
 import com.redia.back.model.User;
 import com.redia.back.repository.UserRepository;
+import com.redia.back.service.ActionLogService;
 import com.redia.back.service.AuthService;
 import com.redia.back.service.EmailService;
 import com.redia.back.service.ImageService;
@@ -40,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final ImageService imageService;
     private final com.redia.back.security.JwtService jwtService;
+    private final ActionLogService actionLogService;
 
     @Value("${google.client-id}")
     private String googleClientId;
@@ -51,12 +53,14 @@ public class AuthServiceImpl implements AuthService {
             PasswordEncoder passwordEncoder,
             EmailService emailService,
             ImageService imageService,
-            com.redia.back.security.JwtService jwtService) {
+            com.redia.back.security.JwtService jwtService,
+            ActionLogService actionLogService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.imageService = imageService;
         this.jwtService = jwtService;
+        this.actionLogService = actionLogService;
     }
 
     @Override
@@ -127,6 +131,9 @@ public class AuthServiceImpl implements AuthService {
 
         User userGuardado = userRepository.save(user);
 
+        actionLogService.registrar(userGuardado, "REGISTER",
+                "Nuevo usuario registrado con rol: " + role.name());
+
         // Enviar correo de bienvenida
         try {
             emailService.sendMail(
@@ -154,6 +161,9 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.nuevaPassword()));
 
         userRepository.save(user);
+
+        actionLogService.registrar(user, "RECOVER_PASSWORD",
+                "Contraseña recuperada para: " + user.getEmail());
 
         // Enviar correo de confirmación
         try {
@@ -230,6 +240,9 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(usuario);
 
+        actionLogService.registrar(usuario, "RESET_PASSWORD",
+                "Contraseña reseteada con código de verificación");
+
         // Enviar correo de confirmación
         try {
             emailService.sendMail(
@@ -264,6 +277,9 @@ public class AuthServiceImpl implements AuthService {
         // Actualizar la contraseña
         user.setPassword(passwordEncoder.encode(changePasswordDTO.newPassword()));
         userRepository.save(user);
+
+        actionLogService.registrar(user, "CHANGE_PASSWORD",
+                "Cambio de contraseña exitoso");
 
         // Enviar correo de confirmación
         try {
@@ -339,6 +355,9 @@ public class AuthServiceImpl implements AuthService {
 
             String accessToken = jwtService.generateToken(user.getEmail(), user.getRole().name());
             String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+            actionLogService.registrar(user, "LOGIN_GOOGLE",
+                    "Login con cuenta de Google");
 
             return new AuthResponseDTO(
                     accessToken,
@@ -438,6 +457,9 @@ public class AuthServiceImpl implements AuthService {
 
         user.setTwoFactorEnabled(true);
         userRepository.save(user);
+
+        actionLogService.registrar(user, "ENABLE_2FA",
+                "Verificación de dos pasos activada");
     }
 
     @Override
@@ -448,6 +470,9 @@ public class AuthServiceImpl implements AuthService {
         user.setTwoFactorEnabled(false);
         user.setTwoFactorSecret(null);
         userRepository.save(user);
+
+        actionLogService.registrar(user, "DISABLE_2FA",
+                "Verificación de dos pasos desactivada");
     }
 
     @Override
@@ -468,6 +493,9 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = jwtService.generateToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        actionLogService.registrar(user, "LOGIN_2FA_VERIFICADO",
+                "Login completado con verificación 2FA");
 
         return new AuthResponseDTO(
                 accessToken,
