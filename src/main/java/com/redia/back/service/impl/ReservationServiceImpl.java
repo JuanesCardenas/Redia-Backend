@@ -519,4 +519,23 @@ public class ReservationServiceImpl implements ReservationService {
             logger.info("Reservas finalizadas con éxito.");
         }
     }
+
+    @Override
+    public List<com.redia.back.dto.TableAvailabilityDTO> getMesasDisponibles(LocalDateTime inicio, LocalDateTime fin) {
+        // Obtenemos todas las mesas
+        List<DinningTable> todasMesas = dinningTableRepository.findAll();
+        // Obtenemos aquellas que SÍ están disponibles
+        List<DinningTable> mesasDisponibles = dinningTableRepository.findMesasDisponibles(inicio, fin);
+        
+        Set<String> idDisponibles = mesasDisponibles.stream()
+                .map(DinningTable::getId)
+                .collect(Collectors.toSet());
+
+        return todasMesas.stream().map(mesa -> new com.redia.back.dto.TableAvailabilityDTO(
+                mesa.getId(),
+                mesa.getNombre(),
+                mesa.getCapacidad(),
+                idDisponibles.contains(mesa.getId())
+        )).collect(Collectors.toList());
+    }
 }

@@ -21,6 +21,7 @@ public interface DinningTableRepository extends JpaRepository<DinningTable, Stri
                     JOIN r.mesas m
                     WHERE r.fechaReserva < :horaFin
                     AND r.horaFinReserva > :horaInicio
+                    AND r.estado NOT IN (com.redia.back.model.ReservationStatus.CANCELADA, com.redia.back.model.ReservationStatus.RECHAZADA)
                 )
             """)
     List<DinningTable> findMesasDisponibles(LocalDateTime horaInicio, LocalDateTime horaFin);

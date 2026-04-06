@@ -50,4 +50,9 @@ public interface ReservationService {
      * Finalizar reserva cuando el cliente llega.
      */
     void finalizarReserva(String reservaId);
+
+    /**
+     * Obtener el listado de todas las mesas y si están disponibles.
+     */
+    List<com.redia.back.dto.TableAvailabilityDTO> getMesasDisponibles(java.time.LocalDateTime inicio, java.time.LocalDateTime fin);
 }

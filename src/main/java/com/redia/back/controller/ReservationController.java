@@ -67,6 +67,17 @@ public class ReservationController {
     }
 
     /**
+     * Ver mesas disponibles por fecha y rango de horas.
+     */
+    @GetMapping("/mesas-disponibles")
+    public ResponseEntity<List<com.redia.back.dto.TableAvailabilityDTO>> getMesasDisponibles(
+            @RequestParam("inicio") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime inicio,
+            @RequestParam("fin") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime fin) {
+        
+        return ResponseEntity.ok(reservationService.getMesasDisponibles(inicio, fin));
+    }
+
+    /**
      * Obtener todas las mesas registradas (para recepcionista: asignación en
      * confirmación).
      */

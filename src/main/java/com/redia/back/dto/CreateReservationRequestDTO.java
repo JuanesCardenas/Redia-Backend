@@ -20,7 +20,12 @@ public record CreateReservationRequestDTO(
                 /**
                  * Número de personas
                  */
-                int numeroPersonas
+                int numeroPersonas,
+
+                /**
+                 * IDs de las mesas seleccionadas
+                 */
+                java.util.List<String> tableIds
 
 ) {
 }
