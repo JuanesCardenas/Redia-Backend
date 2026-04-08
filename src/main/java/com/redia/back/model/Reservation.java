@@ -125,7 +125,7 @@ public class Reservation {
         this.numeroPersonas = numeroPersonas;
         this.mesas = mesas;
         this.numeroMesas = mesas.size();
-        this.estado = ReservationStatus.SOLICITADA;
+        this.estado = ReservationStatus.CONFIRMADA;
         this.fechaCreacion = LocalDateTime.now();
     }
 
