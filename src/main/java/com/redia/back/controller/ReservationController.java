@@ -1,6 +1,5 @@
 package com.redia.back.controller;
 
-import com.redia.back.dto.ConfirmReservationRequestDTO;
 import com.redia.back.dto.CreateReservationRequestDTO;
 import com.redia.back.dto.ReservationResponseDTO;
 import com.redia.back.model.DinningTable;
@@ -87,16 +86,14 @@ public class ReservationController {
     }
 
     /**
-     * El recepcionista asigna mesas y confirma la reserva.
+     * Cancelar una reserva sin restricción de tiempo (uso del recepcionista).
      */
-    @PutMapping("/confirm-with-tables/{id}")
-    public ResponseEntity<String> confirmarConMesas(
-            @PathVariable String id,
-            @RequestBody ConfirmReservationRequestDTO request) {
+    @PutMapping("/force-cancel/{id}")
+    public ResponseEntity<String> cancelarForzado(@PathVariable String id) {
 
-        reservationService.assignTablesAndConfirmReservation(id, request);
+        reservationService.cancelarReservaForzado(id);
 
-        return ResponseEntity.ok("Reserva confirmada y mesas asignadas");
+        return ResponseEntity.ok("Reserva cancelada por el recepcionista");
     }
 
     /**

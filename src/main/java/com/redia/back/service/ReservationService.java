@@ -42,9 +42,14 @@ public interface ReservationService {
     void rechazarReserva(String reservaId);
 
     /**
-     * Cancelar una reserva.
+     * Cancelar una reserva (cliente - requiere 24h de anticipación).
      */
     void cancelarReserva(String reservaId);
+
+    /**
+     * Cancelar una reserva sin restricción de tiempo (uso exclusivo del recepcionista).
+     */
+    void cancelarReservaForzado(String reservaId);
 
     /**
      * Finalizar reserva cuando el cliente llega.
