@@ -1,9 +1,10 @@
 package com.redia.back.service;
 
-import com.redia.back.dto.ConfirmReservationRequestDTO;
 import com.redia.back.dto.CreateReservationRequestDTO;
 import com.redia.back.dto.ReservationResponseDTO;
+import com.redia.back.dto.TableAvailabilityDTO;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -12,14 +13,9 @@ import java.util.List;
 public interface ReservationService {
 
     /**
-     * Crear una nueva reserva.
+     * Crear una nueva reserva (queda CONFIRMADA automáticamente con las mesas elegidas).
      */
     ReservationResponseDTO crearReserva(CreateReservationRequestDTO request);
-
-    /**
-     * Asigna mesas a una reserva y la confirma.
-     */
-    void assignTablesAndConfirmReservation(String reservationId, ConfirmReservationRequestDTO request);
 
     /**
      * Obtener reservas del cliente autenticado.
@@ -32,17 +28,7 @@ public interface ReservationService {
     List<ReservationResponseDTO> obtenerTodas();
 
     /**
-     * Confirmar una reserva.
-     */
-    void confirmarReserva(String reservaId);
-
-    /**
-     * Rechazar una reserva.
-     */
-    void rechazarReserva(String reservaId);
-
-    /**
-     * Cancelar una reserva (cliente - requiere 24h de anticipación).
+     * Cancelar una reserva (cliente — requiere 24 h de anticipación).
      */
     void cancelarReserva(String reservaId);
 
@@ -52,12 +38,12 @@ public interface ReservationService {
     void cancelarReservaForzado(String reservaId);
 
     /**
-     * Finalizar reserva cuando el cliente llega.
+     * Finalizar reserva cuando el cliente ya fue atendido.
      */
     void finalizarReserva(String reservaId);
 
     /**
-     * Obtener el listado de todas las mesas y si están disponibles.
+     * Obtener el listado de todas las mesas y si están disponibles para un rango horario.
      */
-    List<com.redia.back.dto.TableAvailabilityDTO> getMesasDisponibles(java.time.LocalDateTime inicio, java.time.LocalDateTime fin);
+    List<TableAvailabilityDTO> getMesasDisponibles(LocalDateTime inicio, LocalDateTime fin);
 }

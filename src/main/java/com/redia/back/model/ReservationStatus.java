@@ -6,16 +6,10 @@ package com.redia.back.model;
  */
 public enum ReservationStatus {
 
-    // El cliente solicitó la reserva
-    SOLICITADA,
-
-    // La reserva fue validada y confirmada
+    // La reserva fue confirmada automáticamente al crearla
     CONFIRMADA,
 
-    // No había disponibilidad
-    RECHAZADA,
-
-    // El cliente canceló la reserva
+    // El cliente o el recepcionista canceló la reserva
     CANCELADA,
 
     // La reserva ya se realizó en el restaurante

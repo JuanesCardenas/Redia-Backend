@@ -1,8 +1,8 @@
 package com.redia.back.service.impl;
 
-import com.redia.back.dto.ConfirmReservationRequestDTO;
 import com.redia.back.dto.CreateReservationRequestDTO;
 import com.redia.back.dto.ReservationResponseDTO;
+import com.redia.back.dto.TableAvailabilityDTO;
 import com.redia.back.exception.BadRequestException;
 import com.redia.back.model.DinningTable;
 import com.redia.back.model.Reservation;
@@ -14,6 +14,7 @@ import com.redia.back.repository.UserRepository;
 import com.redia.back.service.EmailService;
 import com.redia.back.service.ReservationService;
 
+import com.redia.back.dto.EmailDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,17 +24,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * Implementación del servicio de gestión de reservas.
- * Gestiona el ciclo completo de las reservas incluyendo notificaciones por
- * correo.
  */
 @Service
 public class ReservationServiceImpl implements ReservationService {
@@ -61,22 +58,20 @@ public class ReservationServiceImpl implements ReservationService {
      * Obtiene el usuario autenticado desde el JWT.
      */
     private User obtenerUsuarioAutenticado() {
-
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
     }
 
     /**
-     * Crear una nueva reserva.
+     * Crear una nueva reserva. El cliente selecciona las mesas y la reserva
+     * queda CONFIRMADA automáticamente.
      */
     @Override
     public ReservationResponseDTO crearReserva(CreateReservationRequestDTO request) {
 
         User cliente = obtenerUsuarioAutenticado();
-
         logger.info("Solicitud de reserva por usuario: {}", cliente.getEmail());
 
         LocalDateTime fecha = request.fechaReserva();
@@ -91,14 +86,11 @@ public class ReservationServiceImpl implements ReservationService {
         validarDuracionReserva(fecha, horaFinReserva);
 
         int numeroPersonas = request.numeroPersonas();
-
         if (numeroPersonas <= 0) {
             throw new BadRequestException("El número de personas debe ser mayor a 0.");
         }
 
-        // ===================================================
         // Obtener y validar las mesas seleccionadas por el cliente
-        // ===================================================
         java.util.List<String> tableIds = request.tableIds();
         if (tableIds == null || tableIds.isEmpty()) {
             throw new BadRequestException("Debes seleccionar al menos una mesa.");
@@ -106,7 +98,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         List<DinningTable> mesasSeleccionadas = dinningTableRepository.findAllById(tableIds);
         if (mesasSeleccionadas.isEmpty()) {
-            throw new BadRequestException("No se encontraron las mesas seleccionadas.");
+            throw new BadRequestException("No se encontraron las mesas seleccionadas en el sistema.");
         }
 
         // Verificar disponibilidad en el horario solicitado
@@ -122,7 +114,7 @@ public class ReservationServiceImpl implements ReservationService {
             }
         }
 
-        // Validar que la capacidad de las mesas cubre el número de personas
+        // Validar que la capacidad cubre el número de personas
         int capacidadMesas = mesasSeleccionadas.stream().mapToInt(DinningTable::getCapacidad).sum();
         if (capacidadMesas < numeroPersonas) {
             throw new BadRequestException(
@@ -130,9 +122,7 @@ public class ReservationServiceImpl implements ReservationService {
                             + " personas, pero indicaste " + numeroPersonas + ".");
         }
 
-        // ===================================================
         // Crear la reserva directamente CONFIRMADA
-        // ===================================================
         Reservation reserva = new Reservation(
                 cliente,
                 fecha,
@@ -142,21 +132,21 @@ public class ReservationServiceImpl implements ReservationService {
                 ReservationStatus.CONFIRMADA);
 
         reservationRepository.save(reserva);
+        logger.info("Reserva {} creada y confirmada automáticamente", reserva.getId());
 
-        logger.info("Reserva creada y confirmada automáticamente con id {}", reserva.getId());
-
-        // Enviar notificación de reserva confirmada
+        // Notificar al cliente
         String mesasInfo = mesasSeleccionadas.stream()
                 .map(DinningTable::getNombre)
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("No especificadas");
 
-        String cuerpoReservaConfirmada = "Estimado/a " + cliente.getNombre() + ",\n\n" +
+        String cuerpo = "Estimado/a " + cliente.getNombre() + ",\n\n" +
                 "¡Tu reserva ha sido confirmada exitosamente!\n\n" +
                 "Detalles de tu reserva:\n" +
                 "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
                 "ID de Reserva: " + reserva.getId() + "\n" +
-                "Fecha y Hora: " + fecha.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n" +
+                "Fecha y Hora: " + fecha.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n"
+                +
                 "Número de Personas: " + numeroPersonas + "\n" +
                 "Mesas: " + mesasInfo + "\n" +
                 "Estado: CONFIRMADA\n" +
@@ -167,9 +157,9 @@ public class ReservationServiceImpl implements ReservationService {
                 "Equipo de Redia Restaurante";
 
         try {
-            emailService.sendMail(new com.redia.back.dto.EmailDTO(
+            emailService.sendMail(new EmailDTO(
                     "¡Tu reserva está confirmada! - Redia Restaurante",
-                    cuerpoReservaConfirmada,
+                    cuerpo,
                     cliente.getEmail()));
         } catch (Exception e) {
             logger.error("Error enviando correo de reserva confirmada: {}", e.getMessage());
@@ -185,116 +175,12 @@ public class ReservationServiceImpl implements ReservationService {
                 reserva.getEstado().name());
     }
 
-    @Override
-    public void assignTablesAndConfirmReservation(String reservaId, ConfirmReservationRequestDTO request) {
-
-        logger.info("Recepcionista intenta confirmar reserva {}", reservaId);
-
-        Reservation reserva = reservationRepository.findById(reservaId)
-                .orElseThrow(() -> new BadRequestException("Reserva no encontrada"));
-
-        if (reserva.getEstado() != ReservationStatus.SOLICITADA) {
-            throw new BadRequestException("Solo se pueden confirmar reservas en estado SOLICITADA.");
-        }
-
-        LocalDateTime inicio = reserva.getFechaReserva();
-        LocalDateTime fin = reserva.getHoraFinReserva();
-
-        List<String> mesasIds = request.mesasIds();
-
-        List<DinningTable> mesasSeleccionadas = dinningTableRepository.findAllById(mesasIds);
-
-        if (mesasSeleccionadas.isEmpty()) {
-            throw new BadRequestException("Debe seleccionar al menos una mesa.");
-        }
-
-        /**
-         * Verificar disponibilidad
-         */
-        List<DinningTable> mesasDisponibles = dinningTableRepository.findMesasDisponibles(inicio, fin);
-
-        for (DinningTable mesa : mesasSeleccionadas) {
-
-            boolean disponible = mesasDisponibles.stream()
-                    .anyMatch(m -> m.getId().equals(mesa.getId()));
-
-            if (!disponible) {
-
-                logger.warn("Mesa {} no está disponible", mesa.getId());
-
-                throw new BadRequestException(
-                        "La mesa " + mesa.getNombre() + " no está disponible en ese horario.");
-            }
-        }
-
-        /**
-         * Validar capacidad
-         */
-        int capacidadTotal = mesasSeleccionadas.stream()
-                .mapToInt(DinningTable::getCapacidad)
-                .sum();
-
-        if (capacidadTotal < reserva.getNumeroPersonas()) {
-
-            throw new BadRequestException(
-                    "Las mesas seleccionadas no tienen capacidad suficiente para "
-                            + reserva.getNumeroPersonas() + " personas.");
-        }
-
-        /**
-         * Asignar mesas y confirmar
-         */
-        reserva.setMesas(mesasSeleccionadas);
-        reserva.setNumeroMesas(mesasSeleccionadas.size());
-        reserva.setEstado(ReservationStatus.CONFIRMADA);
-
-        reservationRepository.save(reserva);
-
-        logger.info("Reserva {} confirmada con {} mesas",
-                reservaId, mesasSeleccionadas.size());
-
-        // Enviar notificación de reserva confirmada
-        String mesasInfo = reserva.getMesas().stream()
-                .map(DinningTable::getNombre)
-                .reduce((a, b) -> a + ", " + b)
-                .orElse("No especificadas");
-
-        String cuerpoReservaConfirmada = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
-                "¡Excelente noticias! Tu reserva ha sido confirmada.\n\n" +
-                "Detalles de tu reserva:\n" +
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-                "ID de Reserva: " + reserva.getId() + "\n" +
-                "Fecha y Hora: "
-                + reserva.getFechaReserva().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
-                + "\n" +
-                "Número de Personas: " + reserva.getNumeroPersonas() + "\n" +
-                "Número de Mesas: " + reserva.getNumeroMesas() + "\n" +
-                "Mesas: " + mesasInfo + "\n" +
-                "Estado: CONFIRMADA\n" +
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
-                "Tu mesa estará lista a la hora indicada. Te recomendamos llegar 10 minutos antes.\n\n" +
-                "¡Te esperamos en Redia Restaurante!\n\n" +
-                "Saludos cordiales,\n" +
-                "Equipo de Redia Restaurante";
-
-        try {
-            emailService.sendMail(new com.redia.back.dto.EmailDTO(
-                    "¡Tu reserva ha sido confirmada! - Redia Restaurante",
-                    cuerpoReservaConfirmada,
-                    reserva.getCliente().getEmail()));
-        } catch (Exception e) {
-            logger.error("Error enviando correo de reserva confirmada: {}", e.getMessage());
-        }
-    }
-
     /**
      * Obtener reservas del cliente autenticado.
      */
     @Override
     public List<ReservationResponseDTO> obtenerReservasCliente() {
-
         User cliente = obtenerUsuarioAutenticado();
-
         logger.info("Consultando reservas del cliente {}", cliente.getEmail());
 
         return reservationRepository.findByClienteId(cliente.getId())
@@ -311,11 +197,10 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     /**
-     * Obtener todas las reservas (uso administrativo).
+     * Obtener todas las reservas (uso administrativo/recepcionista).
      */
     @Override
     public List<ReservationResponseDTO> obtenerTodas() {
-
         logger.info("Consulta de todas las reservas del sistema");
 
         return reservationRepository.findAll()
@@ -331,91 +216,15 @@ public class ReservationServiceImpl implements ReservationService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public void confirmarReserva(String reservaId) {
-
-        Reservation reserva = reservationRepository.findById(reservaId)
-                .orElseThrow(() -> new BadRequestException("Reserva no encontrada"));
-
-        reserva.setEstado(ReservationStatus.CONFIRMADA);
-
-        reservationRepository.save(reserva);
-
-        logger.info("Reserva {} confirmada", reservaId);
-
-        // Enviar notificación de confirmación
-        String mesasInfo = reserva.getMesas().stream()
-                .map(DinningTable::getNombre)
-                .reduce((a, b) -> a + ", " + b)
-                .orElse("No especificadas");
-
-        String cuerpoConfirmacion = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
-                "¡Excelente noticias! Tu reserva ha sido confirmada.\n\n" +
-                "Detalles de tu reserva:\n" +
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-                "ID de Reserva: " + reserva.getId() + "\n" +
-                "Fecha y Hora: "
-                + reserva.getFechaReserva().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
-                + "\n" +
-                "Número de Personas: " + reserva.getNumeroPersonas() + "\n" +
-                "Mesas: " + mesasInfo + "\n" +
-                "Estado: CONFIRMADA\n" +
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
-                "Tu mesa estará lista a la hora indicada.\n\n" +
-                "Saludos cordiales,\n" +
-                "Equipo de Redia Restaurante";
-
-        try {
-            emailService.sendMail(new com.redia.back.dto.EmailDTO(
-                    "🎉 ¡Tu reserva ha sido confirmada! - Redia Restaurante",
-                    cuerpoConfirmacion,
-                    reserva.getCliente().getEmail()));
-        } catch (Exception e) {
-            logger.error("Error enviando correo de confirmación: {}", e.getMessage());
-        }
-    }
-
-    @Override
-    public void rechazarReserva(String reservaId) {
-
-        Reservation reserva = reservationRepository.findById(reservaId)
-                .orElseThrow(() -> new BadRequestException("Reserva no encontrada"));
-
-        reserva.setEstado(ReservationStatus.RECHAZADA);
-
-        reservationRepository.save(reserva);
-
-        logger.info("Reserva {} rechazada", reservaId);
-
-        // Enviar notificación de rechazo
-        String cuerpoRechazo = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
-                "Lamentablemente, tu reserva ha sido rechazada.\n\n" +
-                "ID de Reserva: " + reserva.getId() + "\n" +
-                "Estado: RECHAZADA\n\n" +
-                "Esto puede deberse a la indisponibilidad de mesas en el horario solicitado.\n" +
-                "Te invitamos a intentar con otra fecha u hora.\n\n" +
-                "Para más información, puedes contactarnos directamente.\n\n" +
-                "Saludos cordiales,\n" +
-                "Equipo de Redia Restaurante";
-
-        try {
-            emailService.sendMail(new com.redia.back.dto.EmailDTO(
-                    "Tu reserva ha sido rechazada - Redia Restaurante",
-                    cuerpoRechazo,
-                    reserva.getCliente().getEmail()));
-        } catch (Exception e) {
-            logger.error("Error enviando correo de rechazo: {}", e.getMessage());
-        }
-    }
-
+    /**
+     * Cancelar una reserva (cliente — requiere 24 h de anticipación).
+     */
     @Override
     public void cancelarReserva(String reservaId) {
-
         Reservation reserva = reservationRepository.findById(reservaId)
                 .orElseThrow(() -> new BadRequestException("Reserva no encontrada"));
 
         long horas = Duration.between(LocalDateTime.now(), reserva.getFechaReserva()).toHours();
-
         if (horas < 24) {
             logger.warn("Intento de cancelación fuera del tiempo permitido para reserva {}", reservaId);
             throw new BadRequestException("No se puede cancelar con menos de 24 horas de anticipación.");
@@ -424,13 +233,17 @@ public class ReservationServiceImpl implements ReservationService {
         cancelarYNotificar(reserva);
     }
 
+    /**
+     * Cancelar una reserva sin restricción de tiempo (uso exclusivo del
+     * recepcionista).
+     */
     @Override
     public void cancelarReservaForzado(String reservaId) {
-
         Reservation reserva = reservationRepository.findById(reservaId)
                 .orElseThrow(() -> new BadRequestException("Reserva no encontrada"));
 
-        if (reserva.getEstado() == ReservationStatus.CANCELADA || reserva.getEstado() == ReservationStatus.FINALIZADA) {
+        if (reserva.getEstado() == ReservationStatus.CANCELADA
+                || reserva.getEstado() == ReservationStatus.FINALIZADA) {
             throw new BadRequestException("La reserva ya está " + reserva.getEstado().name().toLowerCase() + ".");
         }
 
@@ -440,44 +253,42 @@ public class ReservationServiceImpl implements ReservationService {
 
     /** Lógica compartida de cancelación: cambia estado y envía correo. */
     private void cancelarYNotificar(Reservation reserva) {
-
         reserva.setEstado(ReservationStatus.CANCELADA);
         reservationRepository.save(reserva);
         logger.info("Reserva {} cancelada", reserva.getId());
 
-        String cuerpoCancelacion = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
+        String cuerpo = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
                 "Tu reserva ha sido cancelada.\n\n" +
                 "ID de Reserva: " + reserva.getId() + "\n" +
                 "Estado: CANCELADA\n\n" +
-                "Si tienes alguna pregunta sobre esta cancelación, por favor contacta con nuestro equipo.\n\n" +
+                "Si tienes alguna pregunta, por favor contacta con nuestro equipo.\n\n" +
                 "Esperamos tu próxima visita a Redia Restaurante.\n\n" +
                 "Saludos cordiales,\n" +
                 "Equipo de Redia Restaurante";
 
         try {
-            emailService.sendMail(new com.redia.back.dto.EmailDTO(
+            emailService.sendMail(new EmailDTO(
                     "Tu reserva ha sido cancelada - Redia Restaurante",
-                    cuerpoCancelacion,
+                    cuerpo,
                     reserva.getCliente().getEmail()));
         } catch (Exception e) {
             logger.error("Error enviando correo de cancelación: {}", e.getMessage());
         }
     }
 
+    /**
+     * Finalizar una reserva.
+     */
     @Override
     public void finalizarReserva(String reservaId) {
-
         Reservation reserva = reservationRepository.findById(reservaId)
                 .orElseThrow(() -> new BadRequestException("Reserva no encontrada"));
 
         reserva.setEstado(ReservationStatus.FINALIZADA);
-
         reservationRepository.save(reserva);
-
         logger.info("Reserva {} finalizada", reservaId);
 
-        // Enviar notificación de finalización
-        String cuerpoFinalizacion = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
+        String cuerpo = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
                 "¡Gracias por tu visita a Redia Restaurante!\n\n" +
                 "Esperamos que hayas disfrutado de una excelente experiencia con nosotros.\n" +
                 "Tu satisfacción es nuestra prioridad.\n\n" +
@@ -486,73 +297,26 @@ public class ReservationServiceImpl implements ReservationService {
                 "Equipo de Redia Restaurante";
 
         try {
-            emailService.sendMail(new com.redia.back.dto.EmailDTO(
+            emailService.sendMail(new EmailDTO(
                     "Gracias por tu visita - Redia Restaurante",
-                    cuerpoFinalizacion,
+                    cuerpo,
                     reserva.getCliente().getEmail()));
         } catch (Exception e) {
             logger.error("Error enviando correo de finalización: {}", e.getMessage());
         }
     }
 
-    private void validarDuracionReserva(LocalDateTime inicio, LocalDateTime fin) {
-
-        if (!inicio.toLocalDate().equals(fin.toLocalDate())) {
-            throw new IllegalArgumentException("La reserva debe comenzar y terminar el mismo día.");
-        }
-
-        long horas = java.time.Duration.between(inicio, fin).toHours();
-
-        if (horas <= 0) {
-            throw new IllegalArgumentException("La hora de finalización debe ser posterior al inicio.");
-        }
-
-        if (horas > 3) {
-            throw new IllegalArgumentException("Una reserva no puede durar más de 3 horas.");
-        }
-    }
-
     /**
-     * Valida que la reserva esté dentro del horario permitido:
-     * - Lunes a viernes: 8:00 - 22:00
-     * - Sábado: 8:00 - 16:00
-     * - Domingo: no permitido
+     * Tarea programada para finalizar automáticamente las reservas confirmadas
+     * cuya hora de fin ya ha pasado.
      */
-    private void validarHorarioReserva(LocalDateTime inicio, LocalDateTime fin) {
-
-        // Verificar que sea día permitido
-        switch (inicio.getDayOfWeek()) {
-            case SUNDAY -> throw new BadRequestException("No se permiten reservas los domingos.");
-            case SATURDAY -> {
-                if (inicio.getHour() < 8 || fin.getHour() > 16) {
-                    throw new BadRequestException("El horario de sábado es de 8:00 a 16:00.");
-                }
-            }
-            default -> { // Lunes a viernes
-                if (inicio.getHour() < 8 || fin.getHour() > 22) {
-                    throw new BadRequestException("El horario de lunes a viernes es de 8:00 a 22:00.");
-                }
-            }
-        }
-
-        // Validar que la fecha de inicio y fin estén en el mismo día
-        if (!inicio.toLocalDate().equals(fin.toLocalDate())) {
-            throw new BadRequestException("La reserva debe iniciar y terminar el mismo día.");
-        }
-    }
-
-    /**
-     * Tarea programada (Cron/FixedRate) para finalizar automáticamente
-     * las reservas confirmadas cuya hora de fin ya ha pasado.
-     */
-    @Scheduled(fixedRate = 60000) // Se ejecuta cada 60 segundos
+    @Scheduled(fixedRate = 60000)
     public void finalizarReservasExpiradas() {
         List<Reservation> expiradas = reservationRepository
                 .findByEstadoAndHoraFinReservaBefore(ReservationStatus.CONFIRMADA, LocalDateTime.now());
 
         if (!expiradas.isEmpty()) {
             logger.info("Finalizando automáticamente {} reservas expiradas...", expiradas.size());
-
             for (Reservation r : expiradas) {
                 r.setEstado(ReservationStatus.FINALIZADA);
             }
@@ -561,22 +325,22 @@ public class ReservationServiceImpl implements ReservationService {
         }
     }
 
+    /**
+     * Obtener disponibilidad de todas las mesas para un rango horario.
+     */
     @Override
-    public List<com.redia.back.dto.TableAvailabilityDTO> getMesasDisponibles(LocalDateTime inicio, LocalDateTime fin) {
-        // Obtenemos todas las mesas
+    public List<TableAvailabilityDTO> getMesasDisponibles(LocalDateTime inicio, LocalDateTime fin) {
         List<DinningTable> todasMesas = dinningTableRepository.findAll();
-        // Obtenemos aquellas que SÍ están disponibles
         List<DinningTable> mesasDisponibles = dinningTableRepository.findMesasDisponibles(inicio, fin);
-        
-        Set<String> idDisponibles = mesasDisponibles.stream()
+
+        Set<String> idsDisponibles = mesasDisponibles.stream()
                 .map(DinningTable::getId)
                 .collect(Collectors.toSet());
 
-        return todasMesas.stream().map(mesa -> new com.redia.back.dto.TableAvailabilityDTO(
+        return todasMesas.stream().map(mesa -> new TableAvailabilityDTO(
                 mesa.getId(),
                 mesa.getNombre(),
                 mesa.getCapacidad(),
-                idDisponibles.contains(mesa.getId())
-        )).collect(Collectors.toList());
+                idsDisponibles.contains(mesa.getId()))).collect(Collectors.toList());
     }
 }
