@@ -343,4 +343,52 @@ public class ReservationServiceImpl implements ReservationService {
                 mesa.getCapacidad(),
                 idsDisponibles.contains(mesa.getId()))).collect(Collectors.toList());
     }
+
+    // ===================================================
+    // Métodos privados de validación
+    // ===================================================
+
+    private void validarDuracionReserva(LocalDateTime inicio, LocalDateTime fin) {
+
+        if (!inicio.toLocalDate().equals(fin.toLocalDate())) {
+            throw new BadRequestException("La reserva debe comenzar y terminar el mismo día.");
+        }
+
+        long horas = java.time.Duration.between(inicio, fin).toHours();
+
+        if (horas <= 0) {
+            throw new BadRequestException("La hora de finalización debe ser posterior al inicio.");
+        }
+
+        if (horas > 3) {
+            throw new BadRequestException("Una reserva no puede durar más de 3 horas.");
+        }
+    }
+
+    /**
+     * Valida que la reserva esté dentro del horario permitido:
+     * - Lunes a viernes: 8:00 - 22:00
+     * - Sábado: 8:00 - 16:00
+     * - Domingo: no permitido
+     */
+    private void validarHorarioReserva(LocalDateTime inicio, LocalDateTime fin) {
+
+        switch (inicio.getDayOfWeek()) {
+            case SUNDAY -> throw new BadRequestException("No se permiten reservas los domingos.");
+            case SATURDAY -> {
+                if (inicio.getHour() < 8 || fin.getHour() > 16) {
+                    throw new BadRequestException("El horario de sábado es de 8:00 a 16:00.");
+                }
+            }
+            default -> { // Lunes a viernes
+                if (inicio.getHour() < 8 || fin.getHour() > 22) {
+                    throw new BadRequestException("El horario de lunes a viernes es de 8:00 a 22:00.");
+                }
+            }
+        }
+
+        if (!inicio.toLocalDate().equals(fin.toLocalDate())) {
+            throw new BadRequestException("La reserva debe iniciar y terminar el mismo día.");
+        }
+    }
 }
