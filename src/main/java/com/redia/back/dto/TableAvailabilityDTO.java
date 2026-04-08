@@ -4,6 +4,7 @@ public record TableAvailabilityDTO(
         String id,
         String nombre,
         int capacidad,
-        boolean disponible
+        boolean disponible,
+        String estado
 ) {
 }

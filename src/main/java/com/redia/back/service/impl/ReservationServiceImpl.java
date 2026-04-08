@@ -341,7 +341,8 @@ public class ReservationServiceImpl implements ReservationService {
                 mesa.getId(),
                 mesa.getNombre(),
                 mesa.getCapacidad(),
-                idsDisponibles.contains(mesa.getId()))).collect(Collectors.toList());
+                idsDisponibles.contains(mesa.getId()),
+                mesa.getEstado().name())).collect(Collectors.toList());
     }
 
     // ===================================================

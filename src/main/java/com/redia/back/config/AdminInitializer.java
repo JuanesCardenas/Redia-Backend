@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Value;
 
+import org.springframework.core.annotation.Order;
+
 @Configuration
 public class AdminInitializer {
 
@@ -19,6 +21,7 @@ public class AdminInitializer {
     private String adminPassword;
 
     @Bean
+    @Order(1)
     CommandLineRunner crearAdmin(UserRepository userRepository,
             PasswordEncoder passwordEncoder) {
 

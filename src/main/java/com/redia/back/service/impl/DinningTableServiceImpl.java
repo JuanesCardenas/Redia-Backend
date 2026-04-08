@@ -43,7 +43,10 @@ public class DinningTableServiceImpl implements DinningTableService {
     @Override
     public DinningTable createDinningTable(CreateDinningTableRequestDTO request) {
 
+        String generatedId = java.util.UUID.randomUUID().toString();
+
         DinningTable diningTable = new DinningTable(
+                generatedId,
                 request.nombre(),
                 request.capacidad());
 
