@@ -4,9 +4,14 @@ import com.redia.back.dto.CreateDinningTableRequestDTO;
 import com.redia.back.dto.UpdateDinningTableRequestDTO;
 import com.redia.back.exception.BadRequestException;
 import com.redia.back.model.DinningTable;
+import com.redia.back.model.User;
 import com.redia.back.repository.DinningTableRepository;
+import com.redia.back.repository.UserRepository;
 import com.redia.back.service.DinningTableService;
+import com.redia.back.service.ActionLogService;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,21 +32,31 @@ import java.util.List;
 public class DinningTableServiceImpl implements DinningTableService {
 
     private final DinningTableRepository diningTableRepository;
+    private final ActionLogService actionLogService;
+    private final UserRepository userRepository;
 
-    /**
-     * Constructor con inyección de dependencias.
-     */
-    public DinningTableServiceImpl(DinningTableRepository diningTableRepository) {
+    public DinningTableServiceImpl(DinningTableRepository diningTableRepository, ActionLogService actionLogService,
+            UserRepository userRepository) {
         this.diningTableRepository = diningTableRepository;
+        this.actionLogService = actionLogService;
+        this.userRepository = userRepository;
     }
 
     /**
-     * Crea una nueva mesa en el sistema.
-     *
-     * La mesa se crea con estado DISPONIBLE por defecto.
+     * Obtener usuario autenticado
      */
+    private User obtenerUsuarioAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
+    }
+
     @Override
     public DinningTable createDinningTable(CreateDinningTableRequestDTO request) {
+
+        User usuario = obtenerUsuarioAutenticado();
 
         String generatedId = java.util.UUID.randomUUID().toString();
 
@@ -49,6 +64,9 @@ public class DinningTableServiceImpl implements DinningTableService {
                 generatedId,
                 request.nombre(),
                 request.capacidad());
+
+        actionLogService.registrar(usuario, "CREAR_MESA",
+                "Mesa creada con ID: " + generatedId + " - Nombre: " + request.nombre());
 
         return diningTableRepository.save(diningTable);
     }
@@ -78,11 +96,15 @@ public class DinningTableServiceImpl implements DinningTableService {
     @Override
     public DinningTable updateDinningTable(String id, UpdateDinningTableRequestDTO request) {
 
+        User usuario = obtenerUsuarioAutenticado();
+
         DinningTable diningTable = diningTableRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("La mesa no existe."));
 
         diningTable.setNombre(request.nombre());
         diningTable.setCapacidad(request.capacidad());
+
+        actionLogService.registrar(usuario, "ACTUALIZAR_MESA", "Mesa actualizada ID: " + id);
 
         return diningTableRepository.save(diningTable);
     }
@@ -92,10 +114,13 @@ public class DinningTableServiceImpl implements DinningTableService {
      */
     @Override
     public void deleteDinningTable(String id) {
+        User usuario = obtenerUsuarioAutenticado();
 
         DinningTable diningTable = diningTableRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("La mesa no existe."));
 
         diningTableRepository.delete(diningTable);
+        actionLogService.registrar(usuario, "ELIMINAR_MESA",
+                "Mesa eliminada ID: " + id + " - Nombre: " + diningTable.getNombre());
     }
 }

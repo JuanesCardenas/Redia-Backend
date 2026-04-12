@@ -24,8 +24,6 @@ public class ActionLogServiceImpl implements ActionLogService {
         log.setAccion(accion);
         log.setDetalle(detalle);
         actionLogRepository.save(log);
-        System.out.println(">>> ACTION LOG GUARDADO con id: " + log.getId()); // línea temporal
-
     }
 
     // Para acciones sin usuario aún (login fallido, forgot password, etc.)
