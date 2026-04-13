@@ -3,7 +3,9 @@ package com.redia.back.repository;
 import com.redia.back.model.Reservation;
 import com.redia.back.model.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,4 +47,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, String
                 AND r.horaFinReserva > :horaInicio
             """)
     List<Reservation> findReservasSolapadas(LocalDateTime horaInicio, LocalDateTime horaFin);
+
+    /**
+     * Elimina TODAS las reservas directamente con SQL (sin cargarlas en memoria).
+     * Necesario cuando la BD tiene estados obsoletos que el enum ya no reconoce.
+     */
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Reservation r")
+    void deleteAllReservations();
 }

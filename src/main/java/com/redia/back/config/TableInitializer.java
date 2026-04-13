@@ -1,7 +1,6 @@
 package com.redia.back.config;
 
 import com.redia.back.model.DinningTable;
-import com.redia.back.model.TableStatus;
 import com.redia.back.repository.DinningTableRepository;
 import com.redia.back.repository.ReservationRepository;
 import org.slf4j.Logger;
@@ -11,12 +10,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Inicializa las 10 mesas fijas del restaurante al arrancar la aplicación.
- * También elimina todas las reservas y mesas existentes para que la BD
- * quede sincronizada con el mapa del frontend.
+ *
+ * Comportamiento:
+ *  - Reservas: siempre se eliminan con DELETE directo (seguro aunque haya
+ *    estados obsoletos como SOLICITADA/RECHAZADA en la BD).
+ *  - Mesas: solo se recrean si la BD no contiene exactamente las 10
+ *    mesas esperadas (IDs "1"-"10"). En reinicios normales no se tocan.
  *
  * Mesas 1, 2, 9, 10  → capacidad 2 personas
  * Mesas 3, 4, 5, 6, 7, 8 → capacidad 4 personas
@@ -26,6 +31,10 @@ public class TableInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(TableInitializer.class);
 
+    /** IDs exactos que deben existir en la BD. */
+    private static final Set<String> EXPECTED_IDS =
+            Set.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
+
     @Bean
     @Order(2) // Corre después del AdminInitializer (Order 1)
     public CommandLineRunner initTables(
@@ -33,23 +42,28 @@ public class TableInitializer {
             ReservationRepository reservationRepository) {
 
         return args -> {
-            // 1. Eliminar TODAS las reservas primero (para liberar la FK hacia mesas)
-            long totalReservas = reservationRepository.count();
-            if (totalReservas > 0) {
-                logger.info("Eliminando {} reservas existentes...", totalReservas);
-                reservationRepository.deleteAll();
-                logger.info("Reservas eliminadas.");
+
+            // 1. Siempre eliminar todas las reservas con DELETE directo (sin cargar
+            //    entidades en memoria) para evitar errores con enums obsoletos.
+            logger.info("Limpiando todas las reservas existentes...");
+            reservationRepository.deleteAllReservations();
+            logger.info("Reservas eliminadas.");
+
+            // 2. Verificar si las 10 mesas correctas ya están en la BD.
+            List<DinningTable> mesasActuales = dinningTableRepository.findAll();
+            Set<String> idsActuales = new HashSet<>();
+            for (DinningTable m : mesasActuales) {
+                idsActuales.add(m.getId());
             }
 
-            // 2. Eliminar todas las mesas existentes
-            long totalMesas = dinningTableRepository.count();
-            if (totalMesas > 0) {
-                logger.info("Eliminando {} mesas existentes para re-inicializar...", totalMesas);
-                dinningTableRepository.deleteAll();
+            if (idsActuales.equals(EXPECTED_IDS)) {
+                logger.info("Las 10 mesas ya están correctamente inicializadas. No se realizan cambios.");
+                return;
             }
 
-            // 3. Insertar las 10 mesas fijas con IDs "1"-"10" (igual que en el frontend)
-            logger.info("Inicializando las 10 mesas fijas del restaurante...");
+            // 3. Si las mesas no están bien, borrar y reinsertar.
+            logger.info("Mesas incorrectas o faltantes (encontradas: {}). Re-inicializando...", idsActuales.size());
+            dinningTableRepository.deleteAll();
 
             List<DinningTable> tables = List.of(
                     new DinningTable("1",  "1",  2),  // Mesa 01 — 2 personas
