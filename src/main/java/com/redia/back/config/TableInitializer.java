@@ -17,11 +17,13 @@ import java.util.Set;
 /**
  * Inicializa las 10 mesas fijas del restaurante al arrancar la aplicación.
  *
- * Comportamiento:
- *  - Reservas: siempre se eliminan con DELETE directo (seguro aunque haya
- *    estados obsoletos como SOLICITADA/RECHAZADA en la BD).
- *  - Mesas: solo se recrean si la BD no contiene exactamente las 10
- *    mesas esperadas (IDs "1"-"10"). En reinicios normales no se tocan.
+ * Comportamiento (completamente idempotente):
+ *  - Si las 10 mesas correctas (IDs "1"-"10") ya existen en la BD →
+ *    NO se toca nada: ni reservas ni mesas.
+ *  - Si las mesas están incorrectas o faltan (p. ej. migración de esquema) →
+ *    se eliminan TODAS las reservas con DELETE directo (sin cargar entidades,
+ *    seguro aunque haya estados obsoletos como SOLICITADA/RECHAZADA en la BD)
+ *    y luego se recrean las 10 mesas correctas.
  *
  * Mesas 1, 2, 9, 10  → capacidad 2 personas
  * Mesas 3, 4, 5, 6, 7, 8 → capacidad 4 personas
@@ -43,13 +45,7 @@ public class TableInitializer {
 
         return args -> {
 
-            // 1. Siempre eliminar todas las reservas con DELETE directo (sin cargar
-            //    entidades en memoria) para evitar errores con enums obsoletos.
-            logger.info("Limpiando todas las reservas existentes...");
-            reservationRepository.deleteAllReservations();
-            logger.info("Reservas eliminadas.");
-
-            // 2. Verificar si las 10 mesas correctas ya están en la BD.
+            // 1. Verificar si las 10 mesas correctas ya están en la BD.
             List<DinningTable> mesasActuales = dinningTableRepository.findAll();
             Set<String> idsActuales = new HashSet<>();
             for (DinningTable m : mesasActuales) {
@@ -57,12 +53,20 @@ public class TableInitializer {
             }
 
             if (idsActuales.equals(EXPECTED_IDS)) {
+                // Las mesas están bien → no se toca nada (ni reservas).
                 logger.info("Las 10 mesas ya están correctamente inicializadas. No se realizan cambios.");
                 return;
             }
 
-            // 3. Si las mesas no están bien, borrar y reinsertar.
-            logger.info("Mesas incorrectas o faltantes (encontradas: {}). Re-inicializando...", idsActuales.size());
+            // 2. Las mesas están incorrectas o faltan → escenario de migración.
+            //    Primero limpiar reservas con DELETE directo (sin cargar entidades
+            //    en memoria) para evitar errores por estados obsoletos en el enum.
+            logger.warn("Mesas incorrectas o faltantes (encontradas: {}). Iniciando migración...", idsActuales.size());
+            logger.info("Eliminando reservas existentes (DELETE directo, seguro con enums obsoletos)...");
+            reservationRepository.deleteAllReservations();
+            logger.info("Reservas eliminadas.");
+
+            // 3. Eliminar las mesas incorrectas y recrear las 10 correctas.
             dinningTableRepository.deleteAll();
 
             List<DinningTable> tables = List.of(
@@ -79,7 +83,7 @@ public class TableInitializer {
             );
 
             dinningTableRepository.saveAll(tables);
-            logger.info("10 mesas inicializadas correctamente con estado DISPONIBLE.");
+            logger.info("Migración completada: 10 mesas inicializadas correctamente con estado DISPONIBLE.");
         };
     }
 }
