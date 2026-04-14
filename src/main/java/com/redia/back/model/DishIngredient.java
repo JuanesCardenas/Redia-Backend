@@ -9,7 +9,7 @@ public class DishIngredient {
     // Id de la relación
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     // Plato al que pertenece el ingrediente
     @ManyToOne
@@ -38,19 +38,35 @@ public class DishIngredient {
 
     // Getters y Setters
 
-    public Long getId() {
+    public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Dish getDish() {
         return dish;
     }
 
+    public void setDish(Dish dish) {
+        this.dish = dish;
+    }
+
     public Ingredient getIngredient() {
         return ingredient;
     }
 
+    public void setIngredient(Ingredient ingredient) {
+        this.ingredient = ingredient;
+    }
+
     public int getCantidad() {
         return cantidad;
+    }
+
+    public void setCantidad(int cantidad) {
+        this.cantidad = cantidad;
     }
 }

@@ -9,11 +9,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repositorio para acceder a las reservas en la base de datos.
  */
 public interface ReservationRepository extends JpaRepository<Reservation, String> {
+
+    /**
+     * Busca una reserva por su ID.
+     *
+     * @param reservationId ID de la reserva a buscar
+     * @return reserva encontrada
+     */
+    Optional<Reservation> findByReservationId(String reservationId);
 
     /**
      * Obtiene todas las reservas de un cliente.

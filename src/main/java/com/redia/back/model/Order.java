@@ -11,7 +11,12 @@ public class Order {
     // Id del pedido
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
+
+    // Reserva asociada
+    @OneToOne
+    @JoinColumn(name = "reservation_id", nullable = false)
+    private Reservation reservation;
 
     // Fecha de creación del pedido
     @Column(nullable = false)
@@ -37,11 +42,13 @@ public class Order {
     // Constructor vacío
     public Order() {
         this.fechaCreacion = LocalDateTime.now();
-        this.status = OrderStatus.CREATED;
+        this.status = OrderStatus.PENDIENTE;
     }
 
     // Constructor
-    public Order(OrderStatus status, List<OrderDishes> dishes, Double total, OrderPayment payment) {
+    public Order(Reservation reservation, OrderStatus status, List<OrderDishes> dishes, Double total,
+            OrderPayment payment) {
+        this.reservation = reservation;
         this.status = status;
         this.dishes = dishes;
         this.total = total;
@@ -50,11 +57,19 @@ public class Order {
 
     // Getters y Setters
 
-    public Long getId() {
+    public Reservation getReservation() {
+        return reservation;
+    }
+
+    public void setReservation(Reservation reservation) {
+        this.reservation = reservation;
+    }
+
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
