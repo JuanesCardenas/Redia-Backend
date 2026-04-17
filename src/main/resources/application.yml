@@ -8,7 +8,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     open-in-view: false
 
 server:
@@ -43,7 +43,7 @@ management:
 
   health:
     db:
-      enabled: false   # 🔥 CLAVE: evita que se cuelgue el health check
+      enabled: false
 
   metrics:
     export:
