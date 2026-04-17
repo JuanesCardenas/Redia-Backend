@@ -44,7 +44,7 @@ public class OrderServiceImpl implements OrderService {
         logger.info("Creando pedido para reserva {}", request.reservationId());
 
         // Validar reserva
-        Reservation reservation = reservationRepository.findByReservationId(request.reservationId())
+        Reservation reservation = reservationRepository.findById(request.reservationId())
                 .orElseThrow(() -> new BadRequestException("Reserva no encontrada"));
 
         if (reservation.getEstado() != ReservationStatus.CONFIRMADA) {

@@ -19,10 +19,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, String
     /**
      * Busca una reserva por su ID.
      *
-     * @param reservationId ID de la reserva a buscar
+     * @param id ID de la reserva a buscar
      * @return reserva encontrada
      */
-    Optional<Reservation> findByReservationId(String reservationId);
+    Optional<Reservation> findById(String id);
 
     /**
      * Obtiene todas las reservas de un cliente.
