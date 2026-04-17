@@ -9,7 +9,7 @@ public class Ingredient {
 
     // Id del ingrediente
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     // Nombre del ingrediente

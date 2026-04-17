@@ -9,7 +9,7 @@ public class Menu {
 
     // Id del menú
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     // Nombre del menú

@@ -8,7 +8,7 @@ public class DishIngredient {
 
     // Id de la relación
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     // Plato al que pertenece el ingrediente

@@ -10,7 +10,7 @@ public class Order {
 
     // Id del pedido
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     // Reserva asociada

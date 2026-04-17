@@ -9,7 +9,7 @@ public class Dish {
 
     // Id del plato
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     // Nombre del plato
