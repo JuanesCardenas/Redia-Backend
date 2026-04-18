@@ -22,6 +22,16 @@ public class Order {
     @Column(nullable = false)
     private OrderStatus status;
 
+    // Reserva asociada al pedido (identifica al cliente)
+    @ManyToOne
+    @JoinColumn(name = "reservation_id", nullable = false)
+    private Reservation reservation;
+
+    // Mesero que tomó el pedido
+    @ManyToOne
+    @JoinColumn(name = "mesero_id", nullable = false)
+    private User mesero;
+
     // Platos del pedido
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderDishes> dishes;
@@ -34,18 +44,25 @@ public class Order {
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private OrderPayment payment;
 
+    // Notas generales del pedido
+    @Column
+    private String notas;
+
     // Constructor vacío
     public Order() {
         this.fechaCreacion = LocalDateTime.now();
         this.status = OrderStatus.CREATED;
+        this.total = 0.0;
     }
 
     // Constructor
-    public Order(OrderStatus status, List<OrderDishes> dishes, Double total, OrderPayment payment) {
-        this.status = status;
-        this.dishes = dishes;
-        this.total = total;
-        this.payment = payment;
+    public Order(Reservation reservation, User mesero, String notas) {
+        this.reservation = reservation;
+        this.mesero = mesero;
+        this.notas = notas;
+        this.fechaCreacion = LocalDateTime.now();
+        this.status = OrderStatus.CREATED;
+        this.total = 0.0;
     }
 
     // Getters y Setters
@@ -74,6 +91,22 @@ public class Order {
         this.status = status;
     }
 
+    public Reservation getReservation() {
+        return reservation;
+    }
+
+    public void setReservation(Reservation reservation) {
+        this.reservation = reservation;
+    }
+
+    public User getMesero() {
+        return mesero;
+    }
+
+    public void setMesero(User mesero) {
+        this.mesero = mesero;
+    }
+
     public List<OrderDishes> getDishes() {
         return dishes;
     }
@@ -96,5 +129,13 @@ public class Order {
 
     public void setPayment(OrderPayment payment) {
         this.payment = payment;
+    }
+
+    public String getNotas() {
+        return notas;
+    }
+
+    public void setNotas(String notas) {
+        this.notas = notas;
     }
 }

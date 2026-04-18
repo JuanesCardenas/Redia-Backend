@@ -33,17 +33,22 @@ public class OrderDishes {
     @Column(nullable = false)
     private Double subtotal;
 
+    // Notas o modificaciones del cliente sobre este plato
+    @Column
+    private String notas;
+
     // Constructor vacío
     public OrderDishes() {
     }
 
     // Constructor
-    public OrderDishes(Order order, Dish dish, int cantidad, Double precioUnitario) {
+    public OrderDishes(Order order, Dish dish, int cantidad, Double precioUnitario, String notas) {
         this.order = order;
         this.dish = dish;
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
         this.subtotal = cantidad * precioUnitario;
+        this.notas = notas;
     }
 
     // Getters y Setters
@@ -93,5 +98,13 @@ public class OrderDishes {
 
     public void setSubtotal(Double subtotal) {
         this.subtotal = subtotal;
+    }
+
+    public String getNotas() {
+        return notas;
+    }
+
+    public void setNotas(String notas) {
+        this.notas = notas;
     }
 }
