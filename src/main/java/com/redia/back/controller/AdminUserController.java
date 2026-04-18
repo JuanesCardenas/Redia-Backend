@@ -86,9 +86,6 @@ public class AdminUserController {
 
         logger.info("ADMIN solicitó la lista de usuarios");
 
-        return ResponseEntity.ok(userAdminService.getAllUsers());
-    }
-
     /**
      * Elimina un usuario por su id.
      */

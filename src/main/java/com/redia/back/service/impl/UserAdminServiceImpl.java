@@ -33,6 +33,7 @@ public class UserAdminServiceImpl implements UserAdminService {
 
                 return userRepository.findAll()
                                 .stream()
+                                .filter(User::isActivo)
                                 .map(user -> new UserResponseDTO(
                                                 user.getId(),
                                                 user.getNombre(),
@@ -44,7 +45,7 @@ public class UserAdminServiceImpl implements UserAdminService {
         }
 
         /**
-         * Elimina un usuario por su id.
+         * Elimina lógicamente un usuario por su id (soft delete).
          */
         @Override
         public void deleteUser(String userId) {
@@ -52,6 +53,7 @@ public class UserAdminServiceImpl implements UserAdminService {
                 User user = userRepository.findById(userId)
                                 .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
 
-                userRepository.delete(user);
+                user.setActivo(false);
+                userRepository.save(user);
         }
 }

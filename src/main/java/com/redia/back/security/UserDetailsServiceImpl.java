@@ -25,6 +25,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
+        if (!user.isActivo()) {
+            throw new UsernameNotFoundException("La cuenta del usuario ha sido deshabilitada");
+        }
+
         return new UserDetailsImpl(user);
     }
 }
