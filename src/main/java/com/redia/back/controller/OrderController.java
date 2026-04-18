@@ -33,7 +33,7 @@ public class OrderController {
      * Crear un nuevo pedido desde una reserva confirmada.
      */
     @PostMapping
-    @PreAuthorize("hasAuthority('MESERO')")
+    @PreAuthorize("hasRole('MESERO')")
     public ResponseEntity<OrderResponseDTO> crearPedido(@RequestBody CreateOrderRequestDTO request) {
         logger.info("POST /api/orders - crear pedido");
         return ResponseEntity.ok(orderService.crearPedido(request));
@@ -43,7 +43,7 @@ public class OrderController {
      * Ver pedidos activos del mesero autenticado.
      */
     @GetMapping("/my")
-    @PreAuthorize("hasAuthority('MESERO')")
+    @PreAuthorize("hasRole('MESERO')")
     public ResponseEntity<List<OrderResponseDTO>> misPedidos() {
         return ResponseEntity.ok(orderService.obtenerPedidosMesero());
     }
@@ -52,7 +52,7 @@ public class OrderController {
      * Enviar pedido a cocina (CREATED → IN_PROGRESS).
      */
     @PutMapping("/{id}/send-to-kitchen")
-    @PreAuthorize("hasAuthority('MESERO')")
+    @PreAuthorize("hasRole('MESERO')")
     public ResponseEntity<OrderResponseDTO> enviarACocina(@PathVariable String id) {
         logger.info("PUT /api/orders/{}/send-to-kitchen", id);
         return ResponseEntity.ok(orderService.enviarACocina(id));
@@ -62,7 +62,7 @@ public class OrderController {
      * Obtener reservas CONFIRMADAS disponibles para crear un pedido.
      */
     @GetMapping("/reservations/active")
-    @PreAuthorize("hasAuthority('MESERO')")
+    @PreAuthorize("hasRole('MESERO')")
     public ResponseEntity<List<ReservationResponseDTO>> reservasActivas() {
         return ResponseEntity.ok(orderService.obtenerReservasActivas());
     }
@@ -73,7 +73,7 @@ public class OrderController {
      * Ver cola de pedidos en cocina (CREATED + IN_PROGRESS).
      */
     @GetMapping("/kitchen")
-    @PreAuthorize("hasAuthority('COCINERO')")
+    @PreAuthorize("hasRole('COCINERO')")
     public ResponseEntity<List<OrderResponseDTO>> pedidosCocina() {
         return ResponseEntity.ok(orderService.obtenerPedidosCocina());
     }
@@ -82,7 +82,7 @@ public class OrderController {
      * Marcar pedido como listo (IN_PROGRESS → READY).
      */
     @PutMapping("/{id}/mark-ready")
-    @PreAuthorize("hasAuthority('COCINERO')")
+    @PreAuthorize("hasRole('COCINERO')")
     public ResponseEntity<OrderResponseDTO> marcarListo(@PathVariable String id) {
         logger.info("PUT /api/orders/{}/mark-ready", id);
         return ResponseEntity.ok(orderService.marcarListo(id));
@@ -94,7 +94,7 @@ public class OrderController {
      * Ver pedidos listos para cobrar (READY).
      */
     @GetMapping("/cashier")
-    @PreAuthorize("hasAuthority('CAJERO')")
+    @PreAuthorize("hasRole('CAJERO')")
     public ResponseEntity<List<OrderResponseDTO>> pedidosCajero() {
         return ResponseEntity.ok(orderService.obtenerPedidosCajero());
     }
@@ -103,7 +103,7 @@ public class OrderController {
      * Registrar pago del pedido (READY → PAID).
      */
     @PutMapping("/{id}/pay")
-    @PreAuthorize("hasAuthority('CAJERO')")
+    @PreAuthorize("hasRole('CAJERO')")
     public ResponseEntity<OrderResponseDTO> registrarPago(
             @PathVariable String id,
             @RequestBody PayOrderRequestDTO request) {
@@ -117,7 +117,7 @@ public class OrderController {
      * Detalle de un pedido (cualquier rol del personal).
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('MESERO','COCINERO','CAJERO','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('MESERO','COCINERO','CAJERO','ADMINISTRADOR')")
     public ResponseEntity<OrderResponseDTO> detallePedido(@PathVariable String id) {
         return ResponseEntity.ok(orderService.obtenerPedido(id));
     }
