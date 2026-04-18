@@ -316,6 +316,7 @@ public class AuthServiceImpl implements AuthService {
             GoogleIdToken idToken = verifier.verify(request.getToken());
 
             if (idToken == null) {
+                System.err.println("[Google Auth] Token inválido. Cliente ID configurado: " + googleClientId);
                 throw new BadRequestException("Token de Google inválido.");
             }
 
@@ -368,8 +369,11 @@ public class AuthServiceImpl implements AuthService {
                     user.getTelefono() != null ? user.getTelefono() : "",
                     user.getFotoUrl());
 
+        } catch (BadRequestException e) {
+            throw e;
         } catch (Exception e) {
-            throw new BadRequestException("Error al autenticar con Google.");
+            System.err.println("[Google Auth] Excepción al verificar token: " + e.getClass().getName() + " - " + e.getMessage());
+            throw new BadRequestException("Error al autenticar con Google: " + e.getMessage());
         }
     }
 

@@ -10,8 +10,13 @@ public class Order {
 
     // Id del pedido
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    // Reserva asociada
+    @OneToOne
+    @JoinColumn(name = "reservation_id", nullable = false)
+    private Reservation reservation;
 
     // Fecha de creación del pedido
     @Column(nullable = false)
@@ -67,11 +72,19 @@ public class Order {
 
     // Getters y Setters
 
-    public Long getId() {
+    public Reservation getReservation() {
+        return reservation;
+    }
+
+    public void setReservation(Reservation reservation) {
+        this.reservation = reservation;
+    }
+
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

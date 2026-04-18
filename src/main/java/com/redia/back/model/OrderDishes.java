@@ -8,8 +8,8 @@ public class OrderDishes {
 
     // Id del item del pedido
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     // Pedido al que pertenece
     @ManyToOne
@@ -52,11 +52,11 @@ public class OrderDishes {
     }
 
     // Getters y Setters
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

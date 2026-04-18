@@ -9,8 +9,8 @@ public class Dish {
 
     // Id del plato
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     // Nombre del plato
     @Column(nullable = false)
@@ -57,32 +57,60 @@ public class Dish {
 
     // Getters y Setters
 
-    public Long getId() {
+    public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getNombre() {
         return nombre;
     }
 
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
     public String getDescripcion() {
         return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 
     public Double getPrecio() {
         return precio;
     }
 
+    public void setPrecio(Double precio) {
+        this.precio = precio;
+    }
+
     public String getCategoria() {
         return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
     }
 
     public String getImageUrl() {
         return imageUrl;
     }
 
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     public Boolean getAvailable() {
         return available;
+    }
+
+    public void setAvailable(Boolean available) {
+        this.available = available;
     }
 
     public List<DishIngredient> getIngredientes() {
