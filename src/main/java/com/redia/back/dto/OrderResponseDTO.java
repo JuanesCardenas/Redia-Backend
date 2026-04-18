@@ -7,7 +7,7 @@ import java.util.List;
  * DTO de respuesta con la información completa de un pedido.
  */
 public record OrderResponseDTO(
-        Long id,
+        String id,
         String status,
         String reservationId,
         String clienteNombre,

@@ -53,7 +53,7 @@ public class OrderController {
      */
     @PutMapping("/{id}/send-to-kitchen")
     @PreAuthorize("hasAuthority('MESERO')")
-    public ResponseEntity<OrderResponseDTO> enviarACocina(@PathVariable Long id) {
+    public ResponseEntity<OrderResponseDTO> enviarACocina(@PathVariable String id) {
         logger.info("PUT /api/orders/{}/send-to-kitchen", id);
         return ResponseEntity.ok(orderService.enviarACocina(id));
     }
@@ -83,7 +83,7 @@ public class OrderController {
      */
     @PutMapping("/{id}/mark-ready")
     @PreAuthorize("hasAuthority('COCINERO')")
-    public ResponseEntity<OrderResponseDTO> marcarListo(@PathVariable Long id) {
+    public ResponseEntity<OrderResponseDTO> marcarListo(@PathVariable String id) {
         logger.info("PUT /api/orders/{}/mark-ready", id);
         return ResponseEntity.ok(orderService.marcarListo(id));
     }
@@ -105,7 +105,7 @@ public class OrderController {
     @PutMapping("/{id}/pay")
     @PreAuthorize("hasAuthority('CAJERO')")
     public ResponseEntity<OrderResponseDTO> registrarPago(
-            @PathVariable Long id,
+            @PathVariable String id,
             @RequestBody PayOrderRequestDTO request) {
         logger.info("PUT /api/orders/{}/pay", id);
         return ResponseEntity.ok(orderService.registrarPago(id, request));
@@ -118,7 +118,7 @@ public class OrderController {
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('MESERO','COCINERO','CAJERO','ADMINISTRADOR')")
-    public ResponseEntity<OrderResponseDTO> detallePedido(@PathVariable Long id) {
+    public ResponseEntity<OrderResponseDTO> detallePedido(@PathVariable String id) {
         return ResponseEntity.ok(orderService.obtenerPedido(id));
     }
 }

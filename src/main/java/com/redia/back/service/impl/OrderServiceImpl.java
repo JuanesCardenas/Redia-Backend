@@ -102,7 +102,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // Verificar que no haya ya un pedido activo para esta reserva
-        List<OrderStatus> terminados = List.of(OrderStatus.PAID, OrderStatus.CANCELLED);
+        List<OrderStatus> terminados = List.of(OrderStatus.PAGADO, OrderStatus.CANCELADO);
         if (orderRepository.existsByReservationIdAndStatusNotIn(reserva.getId(), terminados)) {
             throw new BadRequestException("Ya existe un pedido activo para esta reserva.");
         }
@@ -148,7 +148,7 @@ public class OrderServiceImpl implements OrderService {
         User mesero = obtenerUsuarioAutenticado();
         return orderRepository.findByMeseroIdOrderByFechaCreacionDesc(mesero.getId())
                 .stream()
-                .filter(o -> o.getStatus() != OrderStatus.PAID && o.getStatus() != OrderStatus.CANCELLED)
+                .filter(o -> o.getStatus() != OrderStatus.PAGADO && o.getStatus() != OrderStatus.CANCELADO)
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -158,7 +158,7 @@ public class OrderServiceImpl implements OrderService {
     // ─────────────────────────────────
     @Override
     public List<OrderResponseDTO> obtenerPedidosCocina() {
-        return orderRepository.findByStatusIn(List.of(OrderStatus.CREATED, OrderStatus.IN_PROGRESS))
+        return orderRepository.findByStatusIn(List.of(OrderStatus.PENDIENTE, OrderStatus.EN_PREPARACION))
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -169,7 +169,7 @@ public class OrderServiceImpl implements OrderService {
     // ─────────────────────────────────
     @Override
     public List<OrderResponseDTO> obtenerPedidosCajero() {
-        return orderRepository.findByStatusIn(List.of(OrderStatus.READY))
+        return orderRepository.findByStatusIn(List.of(OrderStatus.LISTO))
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -179,7 +179,7 @@ public class OrderServiceImpl implements OrderService {
     // Detalle de un pedido
     // ─────────────────────────────────
     @Override
-    public OrderResponseDTO obtenerPedido(Long id) {
+    public OrderResponseDTO obtenerPedido(String id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Pedido no encontrado"));
         return toDTO(order);
@@ -190,13 +190,13 @@ public class OrderServiceImpl implements OrderService {
     // ─────────────────────────────────
     @Override
     @Transactional
-    public OrderResponseDTO enviarACocina(Long id) {
+    public OrderResponseDTO enviarACocina(String id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Pedido no encontrado"));
-        if (order.getStatus() != OrderStatus.CREATED) {
+        if (order.getStatus() != OrderStatus.PENDIENTE) {
             throw new BadRequestException("El pedido ya fue enviado a cocina.");
         }
-        order.setStatus(OrderStatus.IN_PROGRESS);
+        order.setStatus(OrderStatus.EN_PREPARACION);
         orderRepository.save(order);
         logger.info("Pedido {} enviado a cocina", id);
         return toDTO(order);
@@ -207,13 +207,13 @@ public class OrderServiceImpl implements OrderService {
     // ─────────────────────────────────
     @Override
     @Transactional
-    public OrderResponseDTO marcarListo(Long id) {
+    public OrderResponseDTO marcarListo(String id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Pedido no encontrado"));
-        if (order.getStatus() != OrderStatus.IN_PROGRESS) {
+        if (order.getStatus() != OrderStatus.EN_PREPARACION) {
             throw new BadRequestException("El pedido no está en preparación.");
         }
-        order.setStatus(OrderStatus.READY);
+        order.setStatus(OrderStatus.LISTO);
         orderRepository.save(order);
         logger.info("Pedido {} marcado como READY", id);
         return toDTO(order);
@@ -224,10 +224,10 @@ public class OrderServiceImpl implements OrderService {
     // ─────────────────────────────────
     @Override
     @Transactional
-    public OrderResponseDTO registrarPago(Long id, PayOrderRequestDTO request) {
+    public OrderResponseDTO registrarPago(String id, PayOrderRequestDTO request) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Pedido no encontrado"));
-        if (order.getStatus() != OrderStatus.READY) {
+        if (order.getStatus() != OrderStatus.LISTO) {
             throw new BadRequestException("El pedido no está listo para ser cobrado.");
         }
 
@@ -241,7 +241,7 @@ public class OrderServiceImpl implements OrderService {
         OrderPayment pago = new OrderPayment(order, metodo, order.getTotal());
         pago.setStatus(PaymentStatus.PAGADO);
         order.setPayment(pago);
-        order.setStatus(OrderStatus.PAID);
+        order.setStatus(OrderStatus.PAGADO);
         orderRepository.save(order);
 
         logger.info("Pedido {} marcado como PAID con método {}", id, metodo);

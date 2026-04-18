@@ -13,10 +13,6 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    // Reserva asociada
-    @OneToOne
-    @JoinColumn(name = "reservation_id", nullable = false)
-    private Reservation reservation;
 
     // Fecha de creación del pedido
     @Column(nullable = false)
@@ -56,7 +52,7 @@ public class Order {
     // Constructor vacío
     public Order() {
         this.fechaCreacion = LocalDateTime.now();
-        this.status = OrderStatus.CREATED;
+        this.status = OrderStatus.PENDIENTE;
         this.total = 0.0;
     }
 
@@ -66,19 +62,12 @@ public class Order {
         this.mesero = mesero;
         this.notas = notas;
         this.fechaCreacion = LocalDateTime.now();
-        this.status = OrderStatus.CREATED;
+        this.status = OrderStatus.PENDIENTE;
         this.total = 0.0;
     }
 
     // Getters y Setters
 
-    public Reservation getReservation() {
-        return reservation;
-    }
-
-    public void setReservation(Reservation reservation) {
-        this.reservation = reservation;
-    }
 
     public String getId() {
         return id;

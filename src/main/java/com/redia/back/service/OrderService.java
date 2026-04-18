@@ -22,16 +22,16 @@ public interface OrderService {
     List<OrderResponseDTO> obtenerPedidosCajero();
 
     /** Obtener detalle de un pedido por ID */
-    OrderResponseDTO obtenerPedido(Long id);
+    OrderResponseDTO obtenerPedido(String id);
 
     /** Enviar pedido a cocina: CREATED → IN_PROGRESS (MESERO) */
-    OrderResponseDTO enviarACocina(Long id);
+    OrderResponseDTO enviarACocina(String id);
 
     /** Marcar pedido como listo: IN_PROGRESS → READY (COCINERO) */
-    OrderResponseDTO marcarListo(Long id);
+    OrderResponseDTO marcarListo(String id);
 
     /** Registrar pago: READY → PAID (CAJERO) */
-    OrderResponseDTO registrarPago(Long id, PayOrderRequestDTO request);
+    OrderResponseDTO registrarPago(String id, PayOrderRequestDTO request);
 
     /** Obtener platos disponibles del menú (MESERO) */
     List<DishResponseDTO> obtenerPlatosDisponibles();
