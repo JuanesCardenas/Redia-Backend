@@ -288,6 +288,14 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/request-deletion")
+    public ResponseEntity<String> requestDeletion(@RequestHeader("Authorization") String authHeader) {
+        String email = extractEmailFromHeader(authHeader);
+        logger.info("Solicitud de baja de cuenta para: {}", email);
+        authService.requestUnsubscribe(email);
+        return ResponseEntity.ok("Su solicitud de baja de cuenta ha sido registrada. Un administrador la procesará pronto.");
+    }
+
     private String extractEmailFromHeader(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new BadRequestException("Token de autorización requerido.");

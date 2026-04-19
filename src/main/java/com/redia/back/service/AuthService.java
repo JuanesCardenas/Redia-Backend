@@ -35,4 +35,6 @@ public interface AuthService {
     void disable2FA(String email);
 
     AuthResponseDTO verifyTwoFactor(TwoFactorVerifyRequestDTO request);
+
+    void requestUnsubscribe(String email);
 }

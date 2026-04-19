@@ -510,4 +510,16 @@ public class AuthServiceImpl implements AuthService {
                 user.getTelefono(),
                 user.getFotoUrl());
     }
+
+    @Override
+    public void requestUnsubscribe(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
+
+        user.setBajaSolicitada(true);
+        userRepository.save(user);
+
+        actionLogService.registrar(user, "SOLICITUD_BAJA",
+                "El usuario ha solicitado la eliminación de su cuenta");
+    }
 }
