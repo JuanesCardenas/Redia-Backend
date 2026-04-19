@@ -39,6 +39,8 @@ public interface OrderService {
 
     /** Obtener reservas CONFIRMADAS activas (para el mesero al crear pedido) */
     List<com.redia.back.dto.ReservationResponseDTO> obtenerReservasActivas();
+    
+    List<OrderResponseDTO> obtenerTodosParaDebug();
 
     // ─── CRUD de platos (ADMINISTRADOR) ───────────────────────────────────
 

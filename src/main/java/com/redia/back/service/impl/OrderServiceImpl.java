@@ -285,6 +285,10 @@ public class OrderServiceImpl implements OrderService {
     // ─────────────────────────────────
     // CRUD de platos (ADMINISTRADOR)
     // ─────────────────────────────────
+    
+    public List<OrderResponseDTO> obtenerTodosParaDebug() {
+        return orderRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+    }
 
     @Override
     public List<DishResponseDTO> obtenerTodosPlatos() {

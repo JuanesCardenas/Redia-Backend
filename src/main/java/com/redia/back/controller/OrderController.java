@@ -113,6 +113,13 @@ public class OrderController {
 
     // ─────────────── COMPARTIDO ───────────────
 
+    @GetMapping("/debug-all")
+    public ResponseEntity<List<OrderResponseDTO>> debugAllOrders() {
+        return ResponseEntity.ok(
+            orderService.obtenerTodosParaDebug()
+        );
+    }
+
     /**
      * Detalle de un pedido (cualquier rol del personal).
      */
