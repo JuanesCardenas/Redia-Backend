@@ -63,6 +63,11 @@ public class User {
      */
     private boolean twoFactorEnabled = false;
 
+    /**
+     * Indica si el usuario ha solicitado la eliminación de su cuenta
+     */
+    private boolean bajaSolicitada = false;
+
     public User() {
     }
 
@@ -177,5 +182,13 @@ public class User {
 
     public void setTwoFactorEnabled(boolean twoFactorEnabled) {
         this.twoFactorEnabled = twoFactorEnabled;
+    }
+
+    public boolean isBajaSolicitada() {
+        return bajaSolicitada;
+    }
+
+    public void setBajaSolicitada(boolean bajaSolicitada) {
+        this.bajaSolicitada = bajaSolicitada;
     }
 }

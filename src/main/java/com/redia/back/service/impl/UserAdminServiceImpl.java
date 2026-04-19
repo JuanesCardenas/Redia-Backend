@@ -40,12 +40,13 @@ public class UserAdminServiceImpl implements UserAdminService {
                                                 user.getEmail(),
                                                 user.getTelefono(),
                                                 user.getRole(),
-                                                user.getFotoUrl()))
+                                                user.getFotoUrl(),
+                                                user.isBajaSolicitada()))
                                 .toList();
         }
 
         /**
-         * Elimina lógicamente un usuario por su id (soft delete).
+         * Elimina definitivamente un usuario por su id (hard delete).
          */
         @Override
         public void deleteUser(String userId) {
@@ -53,7 +54,6 @@ public class UserAdminServiceImpl implements UserAdminService {
                 User user = userRepository.findById(userId)
                                 .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
 
-                user.setActivo(false);
-                userRepository.save(user);
+                userRepository.delete(user);
         }
 }

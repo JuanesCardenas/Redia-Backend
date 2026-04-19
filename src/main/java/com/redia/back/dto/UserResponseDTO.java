@@ -13,7 +13,8 @@ public record UserResponseDTO(
         String email,
         String telefono,
         Role role,
-        String fotoUrl
+        String fotoUrl,
+        boolean bajaSolicitada
 
 ) {
 
