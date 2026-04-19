@@ -13,7 +13,6 @@ import com.redia.back.repository.ReservationRepository;
 import com.redia.back.repository.UserRepository;
 import com.redia.back.service.EmailService;
 import com.redia.back.service.ReservationService;
-import com.redia.back.service.ActionLogService;
 
 import com.redia.back.dto.EmailDTO;
 import org.slf4j.Logger;
@@ -42,20 +41,17 @@ public class ReservationServiceImpl implements ReservationService {
     private final UserRepository userRepository;
     private final DinningTableRepository dinningTableRepository;
     private final EmailService emailService;
-    private final ActionLogService actionLogService;
 
     public ReservationServiceImpl(
             ReservationRepository reservationRepository,
             UserRepository userRepository,
             DinningTableRepository dinningTableRepository,
-            EmailService emailService,
-            ActionLogService actionLogService) {
+            EmailService emailService) {
 
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.dinningTableRepository = dinningTableRepository;
         this.emailService = emailService;
-        this.actionLogService = actionLogService;
     }
 
     /**
@@ -136,9 +132,6 @@ public class ReservationServiceImpl implements ReservationService {
                 ReservationStatus.CONFIRMADA);
 
         reservationRepository.save(reserva);
-
-        actionLogService.registrar(cliente, "CREAR_RESERVA", "Reserva creada con ID: " + reserva.getId());
-
         logger.info("Reserva {} creada y confirmada automáticamente", reserva.getId());
 
         // Notificar al cliente
@@ -238,9 +231,6 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         cancelarYNotificar(reserva);
-        User usuario = obtenerUsuarioAutenticado();
-
-        actionLogService.registrar(usuario, "CANCELAR_RESERVA", "Cancelación de reserva ID: " + reservaId);
     }
 
     /**
@@ -256,10 +246,6 @@ public class ReservationServiceImpl implements ReservationService {
                 || reserva.getEstado() == ReservationStatus.FINALIZADA) {
             throw new BadRequestException("La reserva ya está " + reserva.getEstado().name().toLowerCase() + ".");
         }
-
-        User usuario = obtenerUsuarioAutenticado();
-        actionLogService.registrar(usuario, "CANCELAR_RESERVA_FORZADA",
-                "Cancelación forzada de reserva ID: " + reservaId);
 
         logger.info("Recepcionista cancela forzosamente la reserva {}", reservaId);
         cancelarYNotificar(reserva);
@@ -300,10 +286,6 @@ public class ReservationServiceImpl implements ReservationService {
 
         reserva.setEstado(ReservationStatus.FINALIZADA);
         reservationRepository.save(reserva);
-
-        User usuario = obtenerUsuarioAutenticado();
-        actionLogService.registrar(usuario, "FINALIZAR_RESERVA", "Reserva finalizada con ID: " + reservaId);
-
         logger.info("Reserva {} finalizada", reservaId);
 
         String cuerpo = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
@@ -359,8 +341,7 @@ public class ReservationServiceImpl implements ReservationService {
                 mesa.getId(),
                 mesa.getNombre(),
                 mesa.getCapacidad(),
-                idsDisponibles.contains(mesa.getId()),
-                mesa.getEstado().name())).collect(Collectors.toList());
+                idsDisponibles.contains(mesa.getId()))).collect(Collectors.toList());
     }
 
     // ===================================================
