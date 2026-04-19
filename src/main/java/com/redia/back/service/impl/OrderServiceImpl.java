@@ -297,7 +297,6 @@ public class OrderServiceImpl implements OrderService {
                         d.getNombre(),
                         d.getDescripcion(),
                         d.getPrecio(),
-                        d.getCategoria(),
                         d.getImageUrl(),
                         d.getAvailable()))
                 .collect(Collectors.toList());
@@ -372,7 +371,7 @@ public class OrderServiceImpl implements OrderService {
         dish = dishRepository.save(dish);
         logger.info("Plato {} disponibilidad → {}", id, dish.getAvailable());
         return new DishResponseDTO(dish.getId(), dish.getNombre(), dish.getDescripcion(),
-                dish.getPrecio(), dish.getCategoria(), dish.getImageUrl(), dish.getAvailable());
+                dish.getPrecio(), dish.getImageUrl(), dish.getAvailable());
     }
 }
 

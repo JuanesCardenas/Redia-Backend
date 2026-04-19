@@ -6,7 +6,6 @@ package com.redia.back.dto;
 public record OrderDishDTO(
         String id,
         String dishNombre,
-        String dishCategoria,
         int cantidad,
         Double precioUnitario,
         Double subtotal,
