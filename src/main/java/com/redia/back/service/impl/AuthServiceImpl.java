@@ -10,6 +10,7 @@ import com.redia.back.service.ActionLogService;
 import com.redia.back.service.AuthService;
 import com.redia.back.service.EmailService;
 import com.redia.back.service.ImageService;
+import com.redia.back.util.EmailTemplateBuilder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -139,11 +140,9 @@ public class AuthServiceImpl implements AuthService {
             emailService.sendMail(
                     new EmailDTO(
                             "¡Bienvenido a Redia!",
-                            "Hola " + user.getNombre() + ",\n\n" +
-                                    "¡Bienvenido a Redia! Tu registro ha sido completado exitosamente.\n\n" +
-                                    "Ya puedes acceder a la plataforma con tu correo y contraseña.\n\n" +
-                                    "Saludos,\nEl equipo de Redia",
-                            user.getEmail()));
+                            EmailTemplateBuilder.welcomeTemplate(user.getNombre()),
+                            user.getEmail(),
+                            true));
         } catch (Exception e) {
             // Log del error pero no interrumpir el flujo de registro
             System.err.println("Error al enviar correo de bienvenida: " + e.getMessage());
@@ -170,11 +169,9 @@ public class AuthServiceImpl implements AuthService {
             emailService.sendMail(
                     new EmailDTO(
                             "Tu contraseña se ha actualizado correctamente",
-                            "Hola " + user.getNombre() + ",\n\n" +
-                                    "Realizaste un cambio de contraseña en tu cuenta de Redia.\n" +
-                                    "Si no fuiste tú, por favor contáctanos de inmediato.\n\n" +
-                                    "Saludos,\nEl equipo de Redia",
-                            user.getEmail()));
+                            EmailTemplateBuilder.passwordChangeTemplate(user.getNombre()),
+                            user.getEmail(),
+                            true));
         } catch (Exception e) {
             System.err.println("Error al enviar correo de confirmación: " + e.getMessage());
         }
@@ -199,13 +196,9 @@ public class AuthServiceImpl implements AuthService {
             emailService.sendMail(
                     new EmailDTO(
                             "Recuperación de contraseña",
-                            "Hola " + usuario.getNombre() + ",\n\n" +
-                                    "Recibimos una solicitud para recuperar tu contraseña.\n" +
-                                    "Tu código de verificación es: " + codigo + "\n" +
-                                    "Este código expira en 10 minutos.\n\n" +
-                                    "Si no solicitaste esto, ignora este correo.\n\n" +
-                                    "Saludos,\nEl equipo de Redia",
-                            usuario.getEmail()));
+                            EmailTemplateBuilder.verificationCodeTemplate(usuario.getNombre(), codigo),
+                            usuario.getEmail(),
+                            true));
         } catch (Exception e) {
             throw new BadRequestException("Error al enviar el código de verificación.");
         }
@@ -248,11 +241,9 @@ public class AuthServiceImpl implements AuthService {
             emailService.sendMail(
                     new EmailDTO(
                             "Tu contraseña se ha actualizado correctamente",
-                            "Hola " + usuario.getNombre() + ",\n\n" +
-                                    "Tu contraseña ha sido reseteada exitosamente.\n" +
-                                    "Ya puedes iniciar sesión con tu nueva contraseña.\n\n" +
-                                    "Saludos,\nEl equipo de Redia",
-                            usuario.getEmail()));
+                            EmailTemplateBuilder.passwordChangeTemplate(usuario.getNombre()),
+                            usuario.getEmail(),
+                            true));
         } catch (Exception e) {
             System.err.println("Error al enviar correo de confirmación: " + e.getMessage());
         }
@@ -286,11 +277,9 @@ public class AuthServiceImpl implements AuthService {
             emailService.sendMail(
                     new EmailDTO(
                             "Tu contraseña se ha actualizado correctamente",
-                            "Hola " + user.getNombre() + ",\n\n" +
-                                    "Tu contraseña ha sido cambiada exitosamente.\n" +
-                                    "Si no fuiste tú, por favor contáctanos de inmediato.\n\n" +
-                                    "Saludos,\nEl equipo de Redia",
-                            user.getEmail()));
+                            EmailTemplateBuilder.passwordChangeTemplate(user.getNombre()),
+                            user.getEmail(),
+                            true));
         } catch (Exception e) {
             System.err.println("Error al enviar correo de confirmación: " + e.getMessage());
         }

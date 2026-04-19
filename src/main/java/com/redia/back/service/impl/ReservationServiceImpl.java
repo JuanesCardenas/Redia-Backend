@@ -15,6 +15,7 @@ import com.redia.back.service.EmailService;
 import com.redia.back.service.ReservationService;
 
 import com.redia.back.dto.EmailDTO;
+import com.redia.back.util.EmailTemplateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,27 +141,19 @@ public class ReservationServiceImpl implements ReservationService {
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("No especificadas");
 
-        String cuerpo = "Estimado/a " + cliente.getNombre() + ",\n\n" +
-                "¡Tu reserva ha sido confirmada exitosamente!\n\n" +
-                "Detalles de tu reserva:\n" +
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-                "ID de Reserva: " + reserva.getId() + "\n" +
-                "Fecha y Hora: " + fecha.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n"
-                +
-                "Número de Personas: " + numeroPersonas + "\n" +
-                "Mesas: " + mesasInfo + "\n" +
-                "Estado: CONFIRMADA\n" +
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
-                "Tu mesa estará lista a la hora indicada. Te recomendamos llegar 10 minutos antes.\n\n" +
-                "¡Te esperamos en Redia Restaurante!\n\n" +
-                "Saludos cordiales,\n" +
-                "Equipo de Redia Restaurante";
+        String fechaFormato = fecha.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        String horaFormato = fecha.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
 
         try {
             emailService.sendMail(new EmailDTO(
                     "¡Tu reserva está confirmada! - Redia Restaurante",
-                    cuerpo,
-                    cliente.getEmail()));
+                    EmailTemplateBuilder.reservationConfirmationTemplate(
+                            cliente.getNombre(),
+                            fechaFormato,
+                            horaFormato,
+                            numeroPersonas),
+                    cliente.getEmail(),
+                    true));
         } catch (Exception e) {
             logger.error("Error enviando correo de reserva confirmada: {}", e.getMessage());
         }
@@ -257,20 +250,18 @@ public class ReservationServiceImpl implements ReservationService {
         reservationRepository.save(reserva);
         logger.info("Reserva {} cancelada", reserva.getId());
 
-        String cuerpo = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
-                "Tu reserva ha sido cancelada.\n\n" +
-                "ID de Reserva: " + reserva.getId() + "\n" +
-                "Estado: CANCELADA\n\n" +
-                "Si tienes alguna pregunta, por favor contacta con nuestro equipo.\n\n" +
-                "Esperamos tu próxima visita a Redia Restaurante.\n\n" +
-                "Saludos cordiales,\n" +
-                "Equipo de Redia Restaurante";
+        String fechaFormato = reserva.getFechaReserva().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        String horaFormato = reserva.getFechaReserva().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
 
         try {
             emailService.sendMail(new EmailDTO(
                     "Tu reserva ha sido cancelada - Redia Restaurante",
-                    cuerpo,
-                    reserva.getCliente().getEmail()));
+                    EmailTemplateBuilder.reservationCancelledTemplate(
+                            reserva.getCliente().getNombre(),
+                            fechaFormato,
+                            horaFormato),
+                    reserva.getCliente().getEmail(),
+                    true));
         } catch (Exception e) {
             logger.error("Error enviando correo de cancelación: {}", e.getMessage());
         }
@@ -288,19 +279,19 @@ public class ReservationServiceImpl implements ReservationService {
         reservationRepository.save(reserva);
         logger.info("Reserva {} finalizada", reservaId);
 
-        String cuerpo = "Estimado/a " + reserva.getCliente().getNombre() + ",\n\n" +
-                "¡Gracias por tu visita a Redia Restaurante!\n\n" +
-                "Esperamos que hayas disfrutado de una excelente experiencia con nosotros.\n" +
-                "Tu satisfacción es nuestra prioridad.\n\n" +
-                "Te invitamos a visitarnos nuevamente pronto.\n\n" +
-                "Saludos cordiales,\n" +
-                "Equipo de Redia Restaurante";
-
         try {
             emailService.sendMail(new EmailDTO(
                     "Gracias por tu visita - Redia Restaurante",
-                    cuerpo,
-                    reserva.getCliente().getEmail()));
+                    EmailTemplateBuilder.genericTemplate(
+                            "¡Gracias por tu visita!",
+                            "<p>Estimado/a <strong>" + reserva.getCliente().getNombre() + "</strong>,</p>" +
+                            "<p>¡Gracias por tu visita a Redia Restaurante!</p>" +
+                            "<p>Esperamos que hayas disfrutado de una excelente experiencia con nosotros. " +
+                            "Tu satisfacción es nuestra prioridad.</p>" +
+                            "<p style='margin-top: 30px;'>Te invitamos a visitarnos nuevamente pronto. " +
+                            "Nos encantaría volverte a recibir.</p>"),
+                    reserva.getCliente().getEmail(),
+                    true));
         } catch (Exception e) {
             logger.error("Error enviando correo de finalización: {}", e.getMessage());
         }

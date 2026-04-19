@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previsualización de Email Templates - Redia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Roboto", sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            color: #612D53;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .templates-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .template-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .template-title {
+            color: #612D53;
+            font-size: 24px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #853953;
+            padding-bottom: 10px;
+        }
+
+        .template-preview {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        iframe {
+            width: 100%;
+            border: none;
+            height: 800px;
+        }
+
+        .template-description {
+            color: #2C2C2C;
+            margin-top: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            margin-top: 10px;
+            margin-left: 20px;
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 5px 0;
+        }
+
+        .feature-list li:before {
+            content: "✓ ";
+            color: #612D53;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h1>🍽️ Previsualización de Email Templates - Redia</h1>
+        <p>Estilos HTML embebidos con los colores de la marca</p>
+    </div>
+
+    <div class="templates-grid">
+        <!-- Template 1: Welcome -->
+        <div class="template-section">
+            <div class="template-title">1. Template de Bienvenida</div>
+            <div class="template-description">
+                <p><strong>Uso:</strong> Cuando un nuevo usuario se registra</p>
+                <ul class="feature-list">
+                    <li>Título de bienvenida personalizado</li>
+                    <li>Lista de características disponibles</li>
+                    <li>Tips útiles en recuadro destacado</li>
+                </ul>
+            </div>
+            <div class="template-preview">
+                <iframe srcdoc='<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenida</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Roboto", sans-serif; background-color: #f3f4f4; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background-color: #612D53; color: #ffffff; padding: 40px 20px; text-align: center; }
+        .header h1 { font-size: 28px; margin: 0; font-weight: 600; }
+        .content { padding: 40px 30px; }
+        .footer { background-color: #f3f4f4; padding: 20px; text-align: center; border-top: 1px solid #ddd; }
+        .footer p { font-size: 12px; color: #999; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ REDIA</h1>
+        </div>
+        <div class="content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #612D53; margin: 0;">¡Bienvenido a Redia!</h1>
+            </div>
+            <p style="font-size: 16px; color: #2C2C2C; line-height: 1.6;">
+                Hola <strong>Juan</strong>,<br><br>
+                Nos complace mucho que te unas a nuestra comunidad. Tu registro ha sido completado exitosamente.
+            </p>
+            <p style="font-size: 16px; color: #2C2C2C; line-height: 1.6;">
+                Ya puedes acceder a la plataforma para:
+            </p>
+            <ul style="font-size: 16px; color: #2C2C2C; line-height: 1.8;">
+                <li>🍽️ Realizar reservas en Redia</li>
+                <li>📋 Ver menús actualizados</li>
+                <li>🎟️ Disfrutar de promociones exclusivas</li>
+            </ul>
+            <div style="margin-top: 30px; padding: 20px; background-color: #f3f4f4; border-left: 4px solid #853953; border-radius: 4px;">
+                <p style="color: #2C2C2C; margin: 0; font-size: 14px;">
+                    <strong>💡 Tip:</strong> Si tienes alguna duda, no dudes en contactarnos. Estamos aquí para ayudarte.
+                </p>
+            </div>
+        </div>
+        <div class="footer">
+            <p><strong>Redia | Experiencia Gastronómica Inolvidable</strong></p>
+            <p>Síguenos en nuestras redes sociales</p>
+        </div>
+    </div>
+</body>
+</html>'></iframe>
+            </div>
+        </div>
+
+        <!-- Template 2: Verification Code -->
+        <div class="template-section">
+            <div class="template-title">2. Template de Código de Verificación</div>
+            <div class="template-description">
+                <p><strong>Uso:</strong> Al solicitar recuperar contraseña</p>
+                <ul class="feature-list">
+                    <li>Código en grande y destacado</li>
+                    <li>Tiempo de expiración (10 minutos)</li>
+                    <li>Fuente monospace para el código</li>
+                </ul>
+            </div>
+            <div class="template-preview">
+                <iframe srcdoc='<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código de Verificación</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Roboto", sans-serif; background-color: #f3f4f4; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background-color: #612D53; color: #ffffff; padding: 40px 20px; text-align: center; }
+        .header h1 { font-size: 28px; margin: 0; font-weight: 600; }
+        .content { padding: 40px 30px; }
+        .footer { background-color: #f3f4f4; padding: 20px; text-align: center; border-top: 1px solid #ddd; }
+        .footer p { font-size: 12px; color: #999; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ REDIA</h1>
+        </div>
+        <div class="content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #612D53; margin: 0;">Código de Verificación</h1>
+            </div>
+            <p style="font-size: 16px; color: #2C2C2C; line-height: 1.6;">
+                Hola <strong>Juan</strong>,<br><br>
+                Para continuar con la recuperación de tu contraseña, usa el siguiente código:
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+                <div style="background-color: #612D53; color: #ffffff; font-size: 32px; font-weight: bold; padding: 20px; letter-spacing: 8px; border-radius: 8px; font-family: monospace;">
+                    654321
+                </div>
+            </div>
+            <p style="font-size: 14px; color: #999; text-align: center;">
+                Este código expira en 10 minutos
+            </p>
+            <p style="font-size: 16px; color: #2C2C2C; line-height: 1.6;">
+                Si no solicitaste este código, puedes ignorar este correo.
+            </p>
+        </div>
+        <div class="footer">
+            <p><strong>Redia | Experiencia Gastronómica Inolvidable</strong></p>
+        </div>
+    </div>
+</body>
+</html>'></iframe>
+            </div>
+        </div>
+
+        <!-- Template 3: Reservation Confirmation -->
+        <div class="template-section">
+            <div class="template-title">3. Template de Confirmación de Reserva</div>
+            <div class="template-description">
+                <p><strong>Uso:</strong> Cuando se confirma una reserva</p>
+                <ul class="feature-list">
+                    <li>Confirmación visual con ✓</li>
+                    <li>Todos los detalles en un recuadro</li>
+                    <li>Instrucciones de llegada</li>
+                </ul>
+            </div>
+            <div class="template-preview">
+                <iframe srcdoc='<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserva Confirmada</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Roboto", sans-serif; background-color: #f3f4f4; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background-color: #612D53; color: #ffffff; padding: 40px 20px; text-align: center; }
+        .header h1 { font-size: 28px; margin: 0; font-weight: 600; }
+        .content { padding: 40px 30px; }
+        .footer { background-color: #f3f4f4; padding: 20px; text-align: center; border-top: 1px solid #ddd; }
+        .footer p { font-size: 12px; color: #999; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ REDIA</h1>
+        </div>
+        <div class="content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #612D53; margin: 0;">✓ Reserva Confirmada</h1>
+            </div>
+            <p style="font-size: 16px; color: #2C2C2C; line-height: 1.6;">
+                Hola <strong>Juan</strong>,<br><br>
+                ¡Excelente! Tu reserva en Redia ha sido confirmada.
+            </p>
+            <div style="margin: 30px 0; padding: 20px; background-color: #f3f4f4; border-left: 4px solid #853953; border-radius: 4px;">
+                <p style="color: #2C2C2C; margin: 0 0 10px 0;">
+                    <strong>📅 Fecha:</strong> 18/04/2026
+                </p>
+                <p style="color: #2C2C2C; margin: 0 0 10px 0;">
+                    <strong>⏰ Hora:</strong> 20:30
+                </p>
+                <p style="color: #2C2C2C; margin: 0;">
+                    <strong>👥 Personas:</strong> 4
+                </p>
+            </div>
+            <p style="font-size: 14px; color: #999;">
+                Si necesitas cancelar o modificar tu reserva, por favor hazlo con al menos 24 horas de anticipación.
+            </p>
+        </div>
+        <div class="footer">
+            <p><strong>Redia | Experiencia Gastronómica Inolvidable</strong></p>
+        </div>
+    </div>
+</body>
+</html>'></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
