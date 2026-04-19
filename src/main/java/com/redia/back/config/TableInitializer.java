@@ -54,7 +54,7 @@ public class TableInitializer {
                 // 1. Buscar el nombre de la llave foránea
                 String constraintQuery = "SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE " +
                         "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'dishes' " +
-                        "AND COLUMN_NAME = 'categoria_id' AND REFERENCED_TABLE_NAME IS NOT NULL LIMIT 1";
+                        "AND COLUMN_NAME = 'categoria' AND REFERENCED_TABLE_NAME IS NOT NULL LIMIT 1";
                 
                 List<String> constraints = jdbcTemplate.queryForList(constraintQuery, String.class);
                 
@@ -65,11 +65,11 @@ public class TableInitializer {
                 }
 
                 // 2. Ahora sí, eliminar la columna
-                jdbcTemplate.execute("ALTER TABLE dishes DROP COLUMN categoria_id");
-                logger.info("¡Columna 'categoria_id' eliminada exitosamente y para siempre de la tabla dishes!");
+                jdbcTemplate.execute("ALTER TABLE dishes DROP COLUMN categoria");
+                logger.info("¡Columna 'categoria' eliminada exitosamente y para siempre de la tabla dishes!");
                 
             } catch (Exception e) {
-                logger.info("La columna 'categoria_id' no existía en dishes o ya había sido eliminada.");
+                logger.info("La columna 'categoria' no existía en dishes o ya había sido eliminada.");
             }
 
             // 1. Verificar si las 10 mesas correctas ya están en la BD.
