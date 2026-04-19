@@ -30,16 +30,19 @@ public class OrderServiceImpl implements OrderService {
     private final DishRepository dishRepository;
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
+    private final ImageService imageService;
 
     public OrderServiceImpl(
             OrderRepository orderRepository,
             DishRepository dishRepository,
             ReservationRepository reservationRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            ImageService imageService) {
         this.orderRepository = orderRepository;
         this.dishRepository = dishRepository;
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
+        this.imageService = imageService;
     }
 
     // ─────────────────────────────────
@@ -60,7 +63,6 @@ public class OrderServiceImpl implements OrderService {
                 order.getDishes().stream().map(od -> new OrderDishDTO(
                         od.getId(),
                         od.getDish().getNombre(),
-                        od.getDish().getCategoria(),
                         od.getCantidad(),
                         od.getPrecioUnitario(),
                         od.getSubtotal(),
@@ -259,7 +261,6 @@ public class OrderServiceImpl implements OrderService {
                         d.getNombre(),
                         d.getDescripcion(),
                         d.getPrecio(),
-                        d.getCategoria(),
                         d.getImageUrl(),
                         d.getAvailable()))
                 .collect(Collectors.toList());
@@ -304,35 +305,53 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public DishResponseDTO crearPlato(DishRequestDTO request) {
+    public DishResponseDTO crearPlato(DishRequestDTO request, org.springframework.web.multipart.MultipartFile image) {
+        String url = "";
+        if (image != null && !image.isEmpty()) {
+            try {
+                java.util.Map<String, Object> result = imageService.upload(image);
+                url = result.get("url").toString();
+            } catch (Exception e) {
+                logger.error("Error subiendo imagen a Cloudinary", e);
+                throw new BadRequestException("No se pudo subir la imagen del plato.");
+            }
+        }
         Dish dish = new Dish(
                 request.nombre(),
                 request.descripcion(),
                 request.precio(),
-                request.categoria(),
-                request.imageUrl(),
+                url,
                 request.available() != null ? request.available() : true);
         dish = dishRepository.save(dish);
         logger.info("Plato creado: {}", dish.getId());
         return new DishResponseDTO(dish.getId(), dish.getNombre(), dish.getDescripcion(),
-                dish.getPrecio(), dish.getCategoria(), dish.getImageUrl(), dish.getAvailable());
+                dish.getPrecio(), dish.getImageUrl(), dish.getAvailable());
     }
 
     @Override
     @Transactional
-    public DishResponseDTO actualizarPlato(String id, DishRequestDTO request) {
+    public DishResponseDTO actualizarPlato(String id, DishRequestDTO request, org.springframework.web.multipart.MultipartFile image) {
         Dish dish = dishRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Plato no encontrado: " + id));
         if (request.nombre() != null) dish.setNombre(request.nombre());
         if (request.descripcion() != null) dish.setDescripcion(request.descripcion());
         if (request.precio() != null) dish.setPrecio(request.precio());
-        if (request.categoria() != null) dish.setCategoria(request.categoria());
-        if (request.imageUrl() != null) dish.setImageUrl(request.imageUrl());
         if (request.available() != null) dish.setAvailable(request.available());
+        
+        if (image != null && !image.isEmpty()) {
+            try {
+                java.util.Map<String, Object> result = imageService.upload(image);
+                dish.setImageUrl(result.get("url").toString());
+            } catch (Exception e) {
+                logger.error("Error subiendo imagen a Cloudinary", e);
+                throw new BadRequestException("No se pudo subir la nueva imagen del plato.");
+            }
+        }
+        
         dish = dishRepository.save(dish);
         logger.info("Plato actualizado: {}", id);
         return new DishResponseDTO(dish.getId(), dish.getNombre(), dish.getDescripcion(),
-                dish.getPrecio(), dish.getCategoria(), dish.getImageUrl(), dish.getAvailable());
+                dish.getPrecio(), dish.getImageUrl(), dish.getAvailable());
     }
 
     @Override

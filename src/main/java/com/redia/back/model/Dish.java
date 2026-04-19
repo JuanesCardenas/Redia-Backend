@@ -24,10 +24,6 @@ public class Dish {
     @Column(nullable = false)
     private Double precio;
 
-    // Categoría del plato
-    @Column(nullable = false)
-    private String categoria;
-
     // URL de la imagen del plato
     @Column(nullable = false)
     private String imageUrl;
@@ -45,12 +41,11 @@ public class Dish {
     }
 
     // Constructor
-    public Dish(String nombre, String descripcion, Double precio, String categoria, String imageUrl,
+    public Dish(String nombre, String descripcion, Double precio, String imageUrl,
             Boolean available) {
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.precio = precio;
-        this.categoria = categoria;
         this.imageUrl = imageUrl;
         this.available = available;
     }
@@ -87,14 +82,6 @@ public class Dish {
 
     public void setPrecio(Double precio) {
         this.precio = precio;
-    }
-
-    public String getCategoria() {
-        return categoria;
-    }
-
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
     }
 
     public String getImageUrl() {

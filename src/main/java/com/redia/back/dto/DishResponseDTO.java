@@ -8,7 +8,6 @@ public record DishResponseDTO(
         String nombre,
         String descripcion,
         Double precio,
-        String categoria,
         String imageUrl,
         Boolean available
 ) {

@@ -29,7 +29,7 @@ public class MenuController {
      * Accesible por el mesero para crear pedidos.
      */
     @GetMapping("/dishes")
-    @PreAuthorize("hasAnyAuthority('MESERO','ADMINISTRADOR','COCINERO')")
+    @PreAuthorize("hasAnyRole('MESERO','ADMINISTRADOR','COCINERO')")
     public ResponseEntity<List<DishResponseDTO>> platosDisponibles() {
         return ResponseEntity.ok(orderService.obtenerPlatosDisponibles());
     }
@@ -39,7 +39,7 @@ public class MenuController {
      * Solo para ADMINISTRADOR.
      */
     @GetMapping("/dishes/all")
-    @PreAuthorize("hasAuthority('ADMINISTRADOR')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<List<DishResponseDTO>> todosLosPlatos() {
         return ResponseEntity.ok(orderService.obtenerTodosPlatos());
     }
@@ -48,22 +48,35 @@ public class MenuController {
      * Crear un nuevo plato.
      * Solo para ADMINISTRADOR.
      */
-    @PostMapping("/dishes")
-    @PreAuthorize("hasAuthority('ADMINISTRADOR')")
-    public ResponseEntity<DishResponseDTO> crearPlato(@RequestBody DishRequestDTO request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.crearPlato(request));
+    @PostMapping(value = "/dishes", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<DishResponseDTO> crearPlato(
+            @RequestParam String nombre,
+            @RequestParam String descripcion,
+            @RequestParam Double precio,
+            @RequestParam(required = false) Boolean available,
+            @RequestParam(required = false) org.springframework.web.multipart.MultipartFile image) {
+        
+        DishRequestDTO request = new DishRequestDTO(nombre, descripcion, precio, available);
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.crearPlato(request, image));
     }
 
     /**
      * Editar un plato existente.
      * Solo para ADMINISTRADOR.
      */
-    @PutMapping("/dishes/{id}")
-    @PreAuthorize("hasAuthority('ADMINISTRADOR')")
+    @PutMapping(value = "/dishes/{id}", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<DishResponseDTO> editarPlato(
             @PathVariable String id,
-            @RequestBody DishRequestDTO request) {
-        return ResponseEntity.ok(orderService.actualizarPlato(id, request));
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String descripcion,
+            @RequestParam(required = false) Double precio,
+            @RequestParam(required = false) Boolean available,
+            @RequestParam(required = false) org.springframework.web.multipart.MultipartFile image) {
+        
+        DishRequestDTO request = new DishRequestDTO(nombre, descripcion, precio, available);
+        return ResponseEntity.ok(orderService.actualizarPlato(id, request, image));
     }
 
     /**
@@ -71,7 +84,7 @@ public class MenuController {
      * Solo para ADMINISTRADOR.
      */
     @DeleteMapping("/dishes/{id}")
-    @PreAuthorize("hasAuthority('ADMINISTRADOR')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Void> eliminarPlato(@PathVariable String id) {
         orderService.eliminarPlato(id);
         return ResponseEntity.noContent().build();
@@ -82,7 +95,7 @@ public class MenuController {
      * Solo para ADMINISTRADOR.
      */
     @PatchMapping("/dishes/{id}/toggle")
-    @PreAuthorize("hasAuthority('ADMINISTRADOR')")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<DishResponseDTO> toggleDisponibilidad(@PathVariable String id) {
         return ResponseEntity.ok(orderService.toggleDisponibilidad(id));
     }
