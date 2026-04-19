@@ -2,6 +2,7 @@ package com.redia.back.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -48,6 +49,25 @@ public class SecurityConfig {
      * @return cadena de filtros de seguridad configurada
      * @throws Exception si ocurre un error durante la configuración de seguridad
      */
+
+    // CADENA 1: Basic Auth para actuator (Grafana Cloud) - PRIORIDAD ALTA
+    @Bean
+    @Order(1)
+    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/actuator/**") // Solo aplica a endpoints de actuator
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/prometheus", "/actuator/health").authenticated() // Requiere auth
+                        .anyRequest().permitAll())
+                .httpBasic(basic -> {
+                }); // Usa Basic Auth (usuario/contraseña)
+
+        return http.build();
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
