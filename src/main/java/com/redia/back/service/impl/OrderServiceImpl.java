@@ -104,11 +104,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BadRequestException("Solo se pueden crear pedidos para reservas CONFIRMADAS.");
         }
 
-        // Verificar que no haya ya un pedido activo para esta reserva
-        List<OrderStatus> terminados = List.of(OrderStatus.PAGADO, OrderStatus.CANCELADO);
-        if (orderRepository.existsByReservationIdAndStatusNotIn(reserva.getId(), terminados)) {
-            throw new BadRequestException("Ya existe un pedido activo para esta reserva.");
-        }
+        // NOTA: Se permite tener múltiples pedidos activos por reserva (para pedir postres o bebidas después).
 
         // Validar que haya ítems
         if (request.items() == null || request.items().isEmpty()) {
