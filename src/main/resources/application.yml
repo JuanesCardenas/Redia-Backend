@@ -20,7 +20,7 @@ spring:
   security:
     user:
       name: ${PROM_USER:grafana_scraper}
-      password: ${PROM_PASS}
+      password: ${PROM_PASS:dummy_password_for_local}
       
 server:
   port: ${PORT:8080}
