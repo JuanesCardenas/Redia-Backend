@@ -48,13 +48,27 @@ public class TableInitializer {
         return args -> {
 
             // Corrección en BD por cambio de esquema:
-            // Intentar eliminar la columna categoria_id si aún existe en dishes,
-            // ya que causa error 500 al insertar nuevos platillos usando ddl-auto=update.
+            // Para eliminar categoria_id en MariaDB/MySQL, primero debemos eliminar
+            // la llave foránea (constraint) que Hibernate generó automáticamente.
             try {
+                // 1. Buscar el nombre de la llave foránea
+                String constraintQuery = "SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE " +
+                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'dishes' " +
+                        "AND COLUMN_NAME = 'categoria_id' AND REFERENCED_TABLE_NAME IS NOT NULL LIMIT 1";
+                
+                List<String> constraints = jdbcTemplate.queryForList(constraintQuery, String.class);
+                
+                if (!constraints.isEmpty()) {
+                    String fkName = constraints.get(0);
+                    jdbcTemplate.execute("ALTER TABLE dishes DROP FOREIGN KEY " + fkName);
+                    logger.info("Llave foránea {} eliminada de la tabla dishes.", fkName);
+                }
+
+                // 2. Ahora sí, eliminar la columna
                 jdbcTemplate.execute("ALTER TABLE dishes DROP COLUMN categoria_id");
-                logger.info("Columna 'categoria_id' eliminada exitosamente de la tabla dishes.");
+                logger.info("¡Columna 'categoria_id' eliminada exitosamente y para siempre de la tabla dishes!");
+                
             } catch (Exception e) {
-                // Si la columna no existe o ya fue eliminada, fallará aquí (comportamiento esperado).
                 logger.info("La columna 'categoria_id' no existía en dishes o ya había sido eliminada.");
             }
 
