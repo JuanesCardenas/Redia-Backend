@@ -81,6 +81,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**", // Endpoints de login y registro
+                                "/api/chatbot/**", // Endpoints del chatbot (auth opcional)
                                 "/api/orders/debug-all", // Temp debug
                                 "/v3/api-docs/**", // Documentación OpenAPI
                                 "/swagger-ui/**", // Interfaz Swagger UI
