@@ -54,8 +54,18 @@ public class TableInitializer {
             }
 
             if (idsActuales.equals(EXPECTED_IDS)) {
-                // Las mesas están bien → no se toca nada (ni reservas).
-                logger.info("Las 10 mesas ya están correctamente inicializadas. No se realizan cambios.");
+                // Las mesas están bien.
+                // ── MIGRACIÓN RÁPIDA: Convertir English status -> Español ──
+                try {
+                	// Evitar 500 Internal Server error por mapeo de enumeradores desactualizados (CREATED -> PENDIENTE)
+                    jdbcTemplate.execute("UPDATE orders SET status = 'PENDIENTE' WHERE status = 'CREATED'");
+                    jdbcTemplate.execute("UPDATE orders SET status = 'EN_PREPARACION' WHERE status = 'IN_PROGRESS'");
+                    jdbcTemplate.execute("UPDATE orders SET status = 'LISTO' WHERE status = 'READY'");
+                    jdbcTemplate.execute("UPDATE orders SET status = 'PAGADO' WHERE status = 'PAID'");
+                    jdbcTemplate.execute("UPDATE orders SET status = 'CANCELADO' WHERE status = 'CANCELLED'");
+                } catch (Exception ignored) {}
+                
+                logger.info("Las 10 mesas ya están correctamente inicializadas. No se realizan cambios en la estructura.");
                 return;
             }
 
