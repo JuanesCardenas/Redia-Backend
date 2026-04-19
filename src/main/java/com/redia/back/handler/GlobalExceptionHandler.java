@@ -64,6 +64,18 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<?> handleMaxSizeException(org.springframework.web.multipart.MaxUploadSizeExceededException exc) {
+        logger.warn("El archivo es demasiado grande (superó los 10MB).");
+        return buildResponse(HttpStatus.BAD_REQUEST, "La imagen es demasiado pesada. El tamaño máximo permitido es 10MB.");
+    }
+
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<?> handleTypeMismatch(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex) {
+        logger.warn("Error de tipo de dato en param: {}", ex.getName());
+        return buildResponse(HttpStatus.BAD_REQUEST, "Formato de dato inválido para el campo: " + ex.getName());
+    }
+
     @ExceptionHandler(MissingCredentialsException.class)
     public ResponseEntity<?> handleMissingCredentials(MissingCredentialsException ex) {
 
