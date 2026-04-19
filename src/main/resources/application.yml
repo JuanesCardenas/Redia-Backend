@@ -16,6 +16,12 @@ spring:
       max-file-size: 10MB
       max-request-size: 15MB
 
+  # Configuración de seguridad para Basic Auth (Prometheus)
+  security:
+    user:
+      name: ${PROM_USER:grafana_scraper}
+      password: ${PROM_PASS}
+      
 server:
   port: ${PORT:8080}
 
@@ -39,6 +45,7 @@ management:
     web:
       exposure:
         include: health,info,prometheus,metrics
+      base-path: /actuator
 
   endpoint:
     health:
@@ -54,3 +61,7 @@ management:
     export:
       prometheus:
         enabled: true
+
+  #Seguridad específica para endpoints de management
+  security:
+    enabled: true
