@@ -46,10 +46,10 @@ public interface OrderService {
     List<DishResponseDTO> obtenerTodosPlatos();
 
     /** Crear un plato nuevo */
-    DishResponseDTO crearPlato(DishRequestDTO request);
+    DishResponseDTO crearPlato(DishRequestDTO request, org.springframework.web.multipart.MultipartFile image);
 
     /** Editar un plato existente */
-    DishResponseDTO actualizarPlato(String id, DishRequestDTO request);
+    DishResponseDTO actualizarPlato(String id, DishRequestDTO request, org.springframework.web.multipart.MultipartFile image);
 
     /** Eliminar un plato */
     void eliminarPlato(String id);
