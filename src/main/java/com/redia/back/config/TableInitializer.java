@@ -13,6 +13,7 @@ import org.springframework.core.annotation.Order;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Inicializa las 10 mesas fijas del restaurante al arrancar la aplicación.
@@ -41,9 +42,21 @@ public class TableInitializer {
     @Order(2) // Corre después del AdminInitializer (Order 1)
     public CommandLineRunner initTables(
             DinningTableRepository dinningTableRepository,
-            ReservationRepository reservationRepository) {
+            ReservationRepository reservationRepository,
+            JdbcTemplate jdbcTemplate) {
 
         return args -> {
+
+            // Corrección en BD por cambio de esquema:
+            // Intentar eliminar la columna categoria_id si aún existe en dishes,
+            // ya que causa error 500 al insertar nuevos platillos usando ddl-auto=update.
+            try {
+                jdbcTemplate.execute("ALTER TABLE dishes DROP COLUMN categoria_id");
+                logger.info("Columna 'categoria_id' eliminada exitosamente de la tabla dishes.");
+            } catch (Exception e) {
+                // Si la columna no existe o ya fue eliminada, fallará aquí (comportamiento esperado).
+                logger.info("La columna 'categoria_id' no existía en dishes o ya había sido eliminada.");
+            }
 
             // 1. Verificar si las 10 mesas correctas ya están en la BD.
             List<DinningTable> mesasActuales = dinningTableRepository.findAll();
