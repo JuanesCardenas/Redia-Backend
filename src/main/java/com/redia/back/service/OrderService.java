@@ -1,6 +1,7 @@
 package com.redia.back.service;
 
 import com.redia.back.dto.CreateOrderRequestDTO;
+import com.redia.back.dto.DishRequestDTO;
 import com.redia.back.dto.DishResponseDTO;
 import com.redia.back.dto.OrderResponseDTO;
 import com.redia.back.dto.PayOrderRequestDTO;
@@ -38,4 +39,21 @@ public interface OrderService {
 
     /** Obtener reservas CONFIRMADAS activas (para el mesero al crear pedido) */
     List<com.redia.back.dto.ReservationResponseDTO> obtenerReservasActivas();
+
+    // ─── CRUD de platos (ADMINISTRADOR) ───────────────────────────────────
+
+    /** Obtener TODOS los platos (incluyendo no disponibles) — solo ADMIN */
+    List<DishResponseDTO> obtenerTodosPlatos();
+
+    /** Crear un plato nuevo */
+    DishResponseDTO crearPlato(DishRequestDTO request);
+
+    /** Editar un plato existente */
+    DishResponseDTO actualizarPlato(String id, DishRequestDTO request);
+
+    /** Eliminar un plato */
+    void eliminarPlato(String id);
+
+    /** Alternar disponibilidad de un plato */
+    DishResponseDTO toggleDisponibilidad(String id);
 }

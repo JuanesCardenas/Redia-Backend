@@ -283,4 +283,77 @@ public class OrderServiceImpl implements OrderService {
                         r.getEstado().name()))
                 .collect(Collectors.toList());
     }
+
+    // ─────────────────────────────────
+    // CRUD de platos (ADMINISTRADOR)
+    // ─────────────────────────────────
+
+    @Override
+    public List<DishResponseDTO> obtenerTodosPlatos() {
+        return dishRepository.findAll().stream()
+                .map(d -> new DishResponseDTO(
+                        d.getId(),
+                        d.getNombre(),
+                        d.getDescripcion(),
+                        d.getPrecio(),
+                        d.getCategoria(),
+                        d.getImageUrl(),
+                        d.getAvailable()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public DishResponseDTO crearPlato(DishRequestDTO request) {
+        Dish dish = new Dish(
+                request.nombre(),
+                request.descripcion(),
+                request.precio(),
+                request.categoria(),
+                request.imageUrl(),
+                request.available() != null ? request.available() : true);
+        dish = dishRepository.save(dish);
+        logger.info("Plato creado: {}", dish.getId());
+        return new DishResponseDTO(dish.getId(), dish.getNombre(), dish.getDescripcion(),
+                dish.getPrecio(), dish.getCategoria(), dish.getImageUrl(), dish.getAvailable());
+    }
+
+    @Override
+    @Transactional
+    public DishResponseDTO actualizarPlato(String id, DishRequestDTO request) {
+        Dish dish = dishRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("Plato no encontrado: " + id));
+        if (request.nombre() != null) dish.setNombre(request.nombre());
+        if (request.descripcion() != null) dish.setDescripcion(request.descripcion());
+        if (request.precio() != null) dish.setPrecio(request.precio());
+        if (request.categoria() != null) dish.setCategoria(request.categoria());
+        if (request.imageUrl() != null) dish.setImageUrl(request.imageUrl());
+        if (request.available() != null) dish.setAvailable(request.available());
+        dish = dishRepository.save(dish);
+        logger.info("Plato actualizado: {}", id);
+        return new DishResponseDTO(dish.getId(), dish.getNombre(), dish.getDescripcion(),
+                dish.getPrecio(), dish.getCategoria(), dish.getImageUrl(), dish.getAvailable());
+    }
+
+    @Override
+    @Transactional
+    public void eliminarPlato(String id) {
+        Dish dish = dishRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("Plato no encontrado: " + id));
+        dishRepository.delete(dish);
+        logger.info("Plato eliminado: {}", id);
+    }
+
+    @Override
+    @Transactional
+    public DishResponseDTO toggleDisponibilidad(String id) {
+        Dish dish = dishRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("Plato no encontrado: " + id));
+        dish.setAvailable(!dish.getAvailable());
+        dish = dishRepository.save(dish);
+        logger.info("Plato {} disponibilidad → {}", id, dish.getAvailable());
+        return new DishResponseDTO(dish.getId(), dish.getNombre(), dish.getDescripcion(),
+                dish.getPrecio(), dish.getCategoria(), dish.getImageUrl(), dish.getAvailable());
+    }
 }
+
