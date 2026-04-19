@@ -19,14 +19,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * Inicializa las 10 mesas fijas del restaurante al arrancar la aplicación.
  *
  * Comportamiento (completamente idempotente):
- *  - Si las 10 mesas correctas (IDs "1"-"10") ya existen en la BD →
- *    NO se toca nada: ni reservas ni mesas.
- *  - Si las mesas están incorrectas o faltan (p. ej. migración de esquema) →
- *    se eliminan TODAS las reservas con DELETE directo (sin cargar entidades,
- *    seguro aunque haya estados obsoletos como SOLICITADA/RECHAZADA en la BD)
- *    y luego se recrean las 10 mesas correctas.
+ * - Si las 10 mesas correctas (IDs "1"-"10") ya existen en la BD →
+ * NO se toca nada: ni reservas ni mesas.
+ * - Si las mesas están incorrectas o faltan (p. ej. migración de esquema) →
+ * se eliminan TODAS las reservas con DELETE directo (sin cargar entidades,
+ * seguro aunque haya estados obsoletos como SOLICITADA/RECHAZADA en la BD)
+ * y luego se recrean las 10 mesas correctas.
  *
- * Mesas 1, 2, 9, 10  → capacidad 2 personas
+ * Mesas 1, 2, 9, 10 → capacidad 2 personas
  * Mesas 3, 4, 5, 6, 7, 8 → capacidad 4 personas
  */
 @Configuration
@@ -35,8 +35,7 @@ public class TableInitializer {
     private static final Logger logger = LoggerFactory.getLogger(TableInitializer.class);
 
     /** IDs exactos que deben existir en la BD. */
-    private static final Set<String> EXPECTED_IDS =
-            Set.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
+    private static final Set<String> EXPECTED_IDS = Set.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
 
     @Bean
     @Order(2) // Corre después del AdminInitializer (Order 1)
@@ -61,8 +60,8 @@ public class TableInitializer {
             }
 
             // 2. Las mesas están incorrectas o faltan → escenario de migración.
-            //    Primero limpiar reservas con DELETE directo (sin cargar entidades
-            //    en memoria) para evitar errores por estados obsoletos en el enum.
+            // Primero limpiar reservas con DELETE directo (sin cargar entidades
+            // en memoria) para evitar errores por estados obsoletos en el enum.
             logger.warn("Mesas incorrectas o faltantes (encontradas: {}). Iniciando migración...", idsActuales.size());
             logger.info("Eliminando reservas existentes (DELETE directo, seguro con enums obsoletos)...");
             reservationRepository.deleteAllReservations();
@@ -72,16 +71,16 @@ public class TableInitializer {
             dinningTableRepository.deleteAll();
 
             List<DinningTable> tables = List.of(
-                    new DinningTable("1",  "1",  2),  // Mesa 01 — 2 personas
-                    new DinningTable("2",  "2",  2),  // Mesa 02 — 2 personas
-                    new DinningTable("3",  "3",  4),  // Mesa 03 — 4 personas
-                    new DinningTable("4",  "4",  4),  // Mesa 04 — 4 personas
-                    new DinningTable("5",  "5",  4),  // Mesa 05 — 4 personas
-                    new DinningTable("6",  "6",  4),  // Mesa 06 — 4 personas
-                    new DinningTable("7",  "7",  4),  // Mesa 07 — 4 personas
-                    new DinningTable("8",  "8",  4),  // Mesa 08 — 4 personas
-                    new DinningTable("9",  "9",  2),  // Mesa 09 — 2 personas
-                    new DinningTable("10", "10", 2)   // Mesa 10 — 2 personas
+                    new DinningTable("1", "1", 2), // Mesa 01 — 2 personas
+                    new DinningTable("2", "2", 2), // Mesa 02 — 2 personas
+                    new DinningTable("3", "3", 4), // Mesa 03 — 4 personas
+                    new DinningTable("4", "4", 4), // Mesa 04 — 4 personas
+                    new DinningTable("5", "5", 4), // Mesa 05 — 4 personas
+                    new DinningTable("6", "6", 4), // Mesa 06 — 4 personas
+                    new DinningTable("7", "7", 4), // Mesa 07 — 4 personas
+                    new DinningTable("8", "8", 4), // Mesa 08 — 4 personas
+                    new DinningTable("9", "9", 2), // Mesa 09 — 2 personas
+                    new DinningTable("10", "10", 2) // Mesa 10 — 2 personas
             );
 
             dinningTableRepository.saveAll(tables);
