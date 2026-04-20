@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * Servicio para el envío de correos electrónicos.
- * Soporta tanto HTML como texto plano.
+ * Soporta tanto HTML como texto plano con estilos de marca Redia.
+ * Última actualización: 2026-04-19 - Email Templates HTML embebido
  */
 @Service
 public class EmailServiceImpl implements EmailService {
