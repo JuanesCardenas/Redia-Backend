@@ -32,18 +32,21 @@ public class OrderServiceImpl implements OrderService {
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final ImageService imageService;
+    private final com.redia.back.service.ActionLogService actionLogService;
 
     public OrderServiceImpl(
             OrderRepository orderRepository,
             DishRepository dishRepository,
             ReservationRepository reservationRepository,
             UserRepository userRepository,
-            ImageService imageService) {
+            ImageService imageService,
+            com.redia.back.service.ActionLogService actionLogService) {
         this.orderRepository = orderRepository;
         this.dishRepository = dishRepository;
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.imageService = imageService;
+        this.actionLogService = actionLogService;
     }
 
     // ─────────────────────────────────
@@ -133,9 +136,11 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setTotal(total);
-        order = orderRepository.save(order);
+        orderRepository.save(order);
+        
+        actionLogService.registrar(mesero, "CREAR_PEDIDO", "El mesero creó el pedido " + order.getId() + " para la reserva " + reserva.getId());
 
-        logger.info("Pedido {} creado con total ${}", order.getId(), total);
+        logger.info("Pedido {} creado con éxito", order.getId());
         return toDTO(order);
     }
 
@@ -197,6 +202,8 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setStatus(OrderStatus.EN_PREPARACION);
         orderRepository.save(order);
+        
+        actionLogService.registrarSinUsuario(order.getMesero().getEmail(), "ENVIAR_A_COCINA", "El pedido " + order.getId() + " fue enviado a la cocina");
         logger.info("Pedido {} enviado a cocina", id);
         return toDTO(order);
     }
@@ -214,6 +221,8 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setStatus(OrderStatus.LISTO);
         orderRepository.save(order);
+        
+        actionLogService.registrarSinUsuario(order.getMesero().getEmail(), "PEDIDO_LISTO", "El pedido " + order.getId() + " fue marcado como listo por cocina");
         logger.info("Pedido {} marcado como READY", id);
         return toDTO(order);
     }
@@ -243,6 +252,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.PAGADO);
         orderRepository.save(order);
 
+        actionLogService.registrarSinUsuario(order.getMesero().getEmail(), "PAGO_REGISTRADO", "Se pagó el pedido " + order.getId() + " mediante " + metodo.name());
         logger.info("Pedido {} marcado como PAID con método {}", id, metodo);
         return toDTO(order);
     }

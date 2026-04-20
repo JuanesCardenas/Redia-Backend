@@ -42,17 +42,20 @@ public class ReservationServiceImpl implements ReservationService {
     private final UserRepository userRepository;
     private final DinningTableRepository dinningTableRepository;
     private final EmailService emailService;
+    private final com.redia.back.service.ActionLogService actionLogService;
 
     public ReservationServiceImpl(
             ReservationRepository reservationRepository,
             UserRepository userRepository,
             DinningTableRepository dinningTableRepository,
-            EmailService emailService) {
+            EmailService emailService,
+            com.redia.back.service.ActionLogService actionLogService) {
 
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.dinningTableRepository = dinningTableRepository;
         this.emailService = emailService;
+        this.actionLogService = actionLogService;
     }
 
     /**
@@ -133,6 +136,8 @@ public class ReservationServiceImpl implements ReservationService {
                 ReservationStatus.CONFIRMADA);
 
         reservationRepository.save(reserva);
+        actionLogService.registrar(cliente, "CREAR_RESERVA", "El usuario creó la reserva " + reserva.getId() + " para " + numeroPersonas + " personas");
+
         logger.info("Reserva {} creada y confirmada automáticamente", reserva.getId());
 
         // Notificar al cliente
@@ -248,6 +253,8 @@ public class ReservationServiceImpl implements ReservationService {
     private void cancelarYNotificar(Reservation reserva) {
         reserva.setEstado(ReservationStatus.CANCELADA);
         reservationRepository.save(reserva);
+        actionLogService.registrar(reserva.getCliente(), "CANCELAR_RESERVA", "Se canceló la reserva " + reserva.getId());
+
         logger.info("Reserva {} cancelada", reserva.getId());
 
         String fechaFormato = reserva.getFechaReserva().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
@@ -277,6 +284,8 @@ public class ReservationServiceImpl implements ReservationService {
 
         reserva.setEstado(ReservationStatus.FINALIZADA);
         reservationRepository.save(reserva);
+        actionLogService.registrar(reserva.getCliente(), "FINALIZAR_RESERVA", "Se finalizó satisfactoriamente la reserva " + reserva.getId());
+
         logger.info("Reserva {} finalizada", reservaId);
 
         try {
