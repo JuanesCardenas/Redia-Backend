@@ -61,7 +61,24 @@ management:
     export:
       prometheus:
         enabled: true
+        # Configuración para Grafana Cloud Remote Write
+        descriptions: true
+        step: 1m
+
+  # Tracing para Grafana Cloud
+  tracing:
+    sampling:
+      probability: 1.0
 
   #Seguridad específica para endpoints de management
   security:
     enabled: true
+
+# Configuración de Prometheus Remote Write para Grafana Cloud
+prometheus:
+  remote-write:
+    url: ${GRAFANA_CLOUD_PROMETHEUS_URL:}
+    username: ${GRAFANA_CLOUD_USERNAME:}
+    password: ${GRAFANA_CLOUD_PASSWORD:}
+    headers:
+      Authorization: Bearer ${GRAFANA_CLOUD_TOKEN:}
