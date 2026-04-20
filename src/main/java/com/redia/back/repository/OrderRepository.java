@@ -19,4 +19,7 @@ public interface OrderRepository extends JpaRepository<Order, String> {
 
     /** Verificar si ya existe un pedido activo para una reserva */
     boolean existsByReservationIdAndStatusNotIn(String reservationId, List<OrderStatus> excludedStatuses);
+
+    /** Pedidos asociados a una reserva específica */
+    List<Order> findByReservationId(String reservationId);
 }
