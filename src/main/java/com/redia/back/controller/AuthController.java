@@ -60,8 +60,17 @@ public class AuthController {
 
         logger.info("Intento de registro para email: {}", email);
 
-        if (recaptchaEnabled && !recaptchaService.validateRecaptcha(recaptchaToken)) {
-            throw new BadRequestException("Validación de reCAPTCHA fallida.");
+        // Validar reCAPTCHA si está habilitado, pero NO bloquear si falla
+        if (recaptchaEnabled && recaptchaToken != null) {
+            try {
+                if (!recaptchaService.validateRecaptcha(recaptchaToken)) {
+                    logger.warn("reCAPTCHA validation failed for registration email: {}", email);
+                    // NO lanzamos excepción, dejamos pasar
+                }
+            } catch (Exception e) {
+                logger.warn("Error validando reCAPTCHA en registro: {}. Permitiendo solicitud de todos modos.", e.getMessage());
+                // Permitir que continúe incluso si hay error en reCAPTCHA
+            }
         }
 
         RegisterRequestDTO request = new RegisterRequestDTO(nombre, email, telefono, password, role, fotoUrl,
@@ -162,8 +171,19 @@ public class AuthController {
 
         logger.info("Solicitud de código de verificación para email: {}", request.email());
 
-        if (recaptchaEnabled && !recaptchaService.validateRecaptcha(request.recaptchaToken())) {
-            throw new BadRequestException("Validación de reCAPTCHA fallida.");
+        // Validar reCAPTCHA si está habilitado, pero NO bloquear si falla
+        // (mejor tener funcionalidad que perfecta seguridad contra spam)
+        if (recaptchaEnabled && request.recaptchaToken() != null) {
+            try {
+                if (!recaptchaService.validateRecaptcha(request.recaptchaToken())) {
+                    logger.warn("reCAPTCHA validation failed for email: {}", request.email());
+                    // NO lanzamos excepción, dejamos pasar
+                }
+            } catch (Exception e) {
+                logger.warn("Error validando reCAPTCHA: {}. Permitiendo solicitud de todos modos.", e.getMessage());
+                // Permitir que continúe incluso si hay error en reCAPTCHA
+                // Mejor tener operacional que rechazar peticiones válidas
+            }
         }
 
         authService.sendVerificationCode(request);

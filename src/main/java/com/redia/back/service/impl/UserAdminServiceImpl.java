@@ -4,6 +4,10 @@ import com.redia.back.dto.UserResponseDTO;
 import com.redia.back.exception.BadRequestException;
 import com.redia.back.model.User;
 import com.redia.back.repository.UserRepository;
+import com.redia.back.repository.ReservationRepository;
+import com.redia.back.repository.OrderRepository;
+import com.redia.back.model.Reservation;
+import com.redia.back.model.Order;
 import com.redia.back.service.UserAdminService;
 
 import org.springframework.stereotype.Service;
@@ -19,9 +23,16 @@ import java.util.List;
 public class UserAdminServiceImpl implements UserAdminService {
 
         private final UserRepository userRepository;
+        private final ReservationRepository reservationRepository;
+        private final OrderRepository orderRepository;
 
-        public UserAdminServiceImpl(UserRepository userRepository) {
+        public UserAdminServiceImpl(
+                        UserRepository userRepository, 
+                        ReservationRepository reservationRepository,
+                        OrderRepository orderRepository) {
                 this.userRepository = userRepository;
+                this.reservationRepository = reservationRepository;
+                this.orderRepository = orderRepository;
         }
 
         /**
@@ -54,6 +65,19 @@ public class UserAdminServiceImpl implements UserAdminService {
                 User user = userRepository.findById(userId)
                                 .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
 
+                // 1. Encontrar todas las reservas de este cliente
+                List<Reservation> userReservations = reservationRepository.findByClienteId(userId);
+
+                // 2. Por cada reserva, destruir los pedidos atados a ella para romper la llave foránea
+                for (Reservation r : userReservations) {
+                        List<Order> orders = orderRepository.findByReservationId(r.getId());
+                        orderRepository.deleteAll(orders);
+                }
+
+                // 3. Destruir las reservas
+                reservationRepository.deleteAll(userReservations);
+
+                // 4. Finalmente, ejecutar el Hard Delete SQL crudo del usuario
                 userRepository.delete(user);
         }
 }
