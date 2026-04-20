@@ -322,7 +322,7 @@ public class AuthServiceImpl implements AuthService {
                         User nuevoUsuario = new User(
                                 nombre,
                                 email,
-                                "",
+                                "PENDING-" + System.currentTimeMillis(),
                                 "",
                                 Role.CLIENTE);
 
