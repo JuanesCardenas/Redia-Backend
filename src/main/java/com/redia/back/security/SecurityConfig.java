@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.security.web.header.writers.CrossOriginOpenerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -57,14 +58,13 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/actuator/**", "/actuator/**") // Captura con y sin /api
+                .securityMatcher(EndpointRequest.toAnyEndpoint()) // Captura todos los endpoints de actuator
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/actuator/prometheus", "/api/actuator/health",
-                                         "/actuator/prometheus", "/actuator/health").permitAll()
-                        .anyRequest().denyAll()); // Bloquea el resto de actuator por seguridad
+                        .requestMatchers(EndpointRequest.to("prometheus", "health")).permitAll() // Libera prometheus y health
+                        .anyRequest().denyAll()); // Bloquea el resto
 
         return http.build();
     }
