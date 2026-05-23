@@ -57,6 +57,12 @@ management:
   health:
     db:
       enabled: false
+    diskspace:
+      enabled: false
+    ping:
+      enabled: true
+    defaults:
+      enabled: false
 
   metrics:
     export:
