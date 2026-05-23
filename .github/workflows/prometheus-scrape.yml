@@ -20,7 +20,7 @@ jobs:
         run: |
           cat > prometheus.yml << EOF
           global:
-            scrape_interval: 30s
+            scrape_interval: 5s
             external_labels:
               application: redia-backend
               instance: redia-backend-2-c4bea5c8cfb5hvh7.brazilsouth-01.azurewebsites.net
@@ -45,5 +45,5 @@ jobs:
             --config.file=prometheus.yml \
             --storage.tsdb.path=/tmp/prometheus-data \
             --web.listen-address=":9091" &
-          sleep 60
+          sleep 120
           kill %1 || true
