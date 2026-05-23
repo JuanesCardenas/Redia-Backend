@@ -137,7 +137,7 @@ public class SecurityConfig {
                 "https://polite-ground-04850fb1e.2.azurestaticapps.net",
                 "https://thankful-pebble-01e3fc91e.2.azurestaticapps.net",
                 // Grafana Cloud
-                "https://rediarestaurante.grafana.net"));
+                "https://angiebonilla.grafana.net"));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD", "TRACE"));
         configuration.setAllowedHeaders(List.of("*"));
