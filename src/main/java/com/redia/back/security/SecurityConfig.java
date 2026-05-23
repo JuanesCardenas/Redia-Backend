@@ -54,20 +54,7 @@ public class SecurityConfig {
     // CADENA 1: Seguridad para endpoints de Actuator - PRIORIDAD ALTA
     // /actuator/prometheus y /actuator/health son públicos para que Grafana Cloud
     // pueda hacer scrape directamente (HTTPS en producción provee la capa de seguridad).
-    @Bean
-    @Order(1)
-    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher(EndpointRequest.toAnyEndpoint()) // Captura todos los endpoints de actuator
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(EndpointRequest.to("prometheus", "health")).permitAll() // Libera prometheus y health
-                        .anyRequest().denyAll()); // Bloquea el resto
 
-        return http.build();
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -81,13 +68,14 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**", // Endpoints de login y registro
-                                "/api/chatbot/**", // Endpoints del chatbot (auth opcional)
-                                "/api/orders/debug-all", // Temp debug
-                                "/v3/api-docs/**", // Documentación OpenAPI
-                                "/swagger-ui/**", // Interfaz Swagger UI
-                                "/swagger-ui.html" // Página principal de Swagger
-                                // Nota: /actuator/** es manejado por actuatorSecurityFilterChain (@Order 1)
+                                "/api/actuator/**", // Actuator con context-path
+                                "/actuator/**",     // Actuator sin context-path
+                                "/api/auth/**",     // Endpoints de login y registro
+                                "/api/chatbot/**",  // Endpoints del chatbot
+                                "/api/orders/debug-all", 
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
                         ).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
