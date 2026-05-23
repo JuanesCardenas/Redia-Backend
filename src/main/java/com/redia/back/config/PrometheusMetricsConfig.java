@@ -1,40 +1,33 @@
 package com.redia.back.config;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Configuración de Prometheus para integración con Grafana Cloud.
- * Permite enviar métricas a través de Remote Write.
+ * Configuración de Prometheus y Grafana Cloud para producción.
+ * Expone métricas en /actuator/prometheus para que Grafana Cloud las recolecte.
  */
 @Configuration
 public class PrometheusMetricsConfig {
 
-    @Value("${grafana.cloud.prometheus-url:}")
-    private String grafanaPrometheusUrl;
-
-    @Value("${grafana.cloud.username:}")
-    private String grafanaUsername;
-
-    @Value("${grafana.cloud.password:}")
-    private String grafanaPassword;
-
-    @Value("${grafana.cloud.token:}")
-    private String grafanaToken;
+    private static final Logger logger = LoggerFactory.getLogger(PrometheusMetricsConfig.class);
 
     /**
-     * Personaliza el registro de métricas para Prometheus
+     * Personaliza el registro de métricas con tags comunes
      */
     @Bean
     public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
+        logger.info("Inicializando configuración de métricas de Prometheus");
         return registry -> registry.config()
                 .commonTags(
-                        "application", "restaurante-app",
-                        "environment", getEnvironment()
+                        "application", "redia-backend",
+                        "service", "restaurants",
+                        "version", "1.0.0"
                 );
     }
 
@@ -45,14 +38,7 @@ public class PrometheusMetricsConfig {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
-
-    /**
-     * Obtiene el ambiente actual
-     */
-    private String getEnvironment() {
-        String activeProfile = System.getProperty("spring.profiles.active", "development");
-        return activeProfile.isEmpty() ? "development" : activeProfile;
-    }
 }
+
 
 

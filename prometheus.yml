@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'redia-local'
+    environment: 'development'
+
+scrape_configs:
+  # Scrape de la aplicación Spring Boot (dentro de Docker Compose usa el nombre del servicio)
+  - job_name: 'spring-boot'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['redia-backend:8080']
+
+  # Auto-monitoreo de Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+

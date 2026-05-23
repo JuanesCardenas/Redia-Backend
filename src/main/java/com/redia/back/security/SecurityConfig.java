@@ -50,7 +50,9 @@ public class SecurityConfig {
      * @throws Exception si ocurre un error durante la configuración de seguridad
      */
 
-    // CADENA 1: Basic Auth para actuator (Grafana Cloud) - PRIORIDAD ALTA
+    // CADENA 1: Seguridad para endpoints de Actuator - PRIORIDAD ALTA
+    // /actuator/prometheus y /actuator/health son públicos para que Grafana Cloud
+    // pueda hacer scrape directamente (HTTPS en producción provee la capa de seguridad).
     @Bean
     @Order(1)
     public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -60,10 +62,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/prometheus", "/actuator/health").authenticated() // Requiere auth
-                        .anyRequest().permitAll())
-                .httpBasic(basic -> {
-                }); // Usa Basic Auth (usuario/contraseña)
+                        .requestMatchers("/actuator/prometheus", "/actuator/health").permitAll()
+                        .anyRequest().denyAll()); // Cualquier otro endpoint de actuator: bloqueado
 
         return http.build();
     }
@@ -85,9 +85,8 @@ public class SecurityConfig {
                                 "/api/orders/debug-all", // Temp debug
                                 "/v3/api-docs/**", // Documentación OpenAPI
                                 "/swagger-ui/**", // Interfaz Swagger UI
-                                "/swagger-ui.html", // Página principal de Swagger
-                                "/actuator/prometheus", // Métricas para Grafana/Prometheus
-                                "/actuator/health" // Health check de Azure App Service
+                                "/swagger-ui.html" // Página principal de Swagger
+                                // Nota: /actuator/** es manejado por actuatorSecurityFilterChain (@Order 1)
                         ).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

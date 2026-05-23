@@ -30,7 +30,7 @@ jobs:
               static_configs:
                 - targets: ['redia-backend-2-c4bea5c8cfb5hvh7.brazilsouth-01.azurewebsites.net']
               scheme: https
-              metrics_path: /actuator/prometheus
+              metrics_path: /api/actuator/prometheus
 
           remote_write:
             - url: ${{ secrets.GRAFANA_REMOTE_WRITE_URL }}

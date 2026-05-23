@@ -1,6 +1,6 @@
 spring:
   application:
-    name: restaurante-app
+    name: redia-backend
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -8,7 +8,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
 
   servlet:
@@ -16,14 +16,15 @@ spring:
       max-file-size: 10MB
       max-request-size: 15MB
 
-  # Configuración de seguridad para Basic Auth (Prometheus)
   security:
     user:
-      name: ${PROM_USER:grafana_scraper}
-      password: ${PROM_PASS:dummy_password_for_local}
-      
+      name: ${PROM_USER:prometheus_scraper}
+      password: ${PROM_PASS:change_me_in_production}
+
 server:
   port: ${PORT:8080}
+  servlet:
+    context-path: /api
 
 jwt:
   secret: ${JWT_SECRET}
@@ -49,7 +50,7 @@ management:
 
   endpoint:
     health:
-      show-details: always
+      show-details: when-authorized
     prometheus:
       enabled: true
 
@@ -65,4 +66,5 @@ management:
         step: 1m
     tags:
       application: redia-backend
-      environment: ${ENVIRONMENT:production}
+      environment: production
+
