@@ -57,13 +57,14 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/actuator/**") // Solo aplica a endpoints de actuator
+                .securityMatcher("/api/actuator/**", "/actuator/**") // Captura con y sin /api
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/prometheus", "/actuator/health").permitAll()
-                        .anyRequest().denyAll()); // Cualquier otro endpoint de actuator: bloqueado
+                        .requestMatchers("/api/actuator/prometheus", "/api/actuator/health",
+                                         "/actuator/prometheus", "/actuator/health").permitAll()
+                        .anyRequest().denyAll()); // Bloquea el resto de actuator por seguridad
 
         return http.build();
     }
