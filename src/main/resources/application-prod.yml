@@ -23,8 +23,6 @@ spring:
 
 server:
   port: ${PORT:8080}
-  servlet:
-    context-path: /api
 
 jwt:
   secret: ${JWT_SECRET}
@@ -46,7 +44,7 @@ management:
     web:
       exposure:
         include: health,info,prometheus,metrics
-      base-path: /actuator
+      base-path: /api/actuator
 
   endpoint:
     health:
