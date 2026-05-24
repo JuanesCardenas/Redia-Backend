@@ -30,6 +30,18 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      # Ejecutar pruebas unitarias
+      - name: Ejecutar pruebas unitarias
+        run: ./gradlew test
+
+      # Publicar resultados
+      - name: Publish test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report
+          path: build/reports/tests/test/
+
       - name: Build + SonarCloud analysis
         run: ./gradlew build sonar -x test
         env:

@@ -51,6 +51,21 @@ dependencies {
 
 test {
     useJUnitPlatform()
+
+    // Muestra cada test en la terminal al ejecutarse
+    testLogging {
+        events "passed", "failed", "skipped"
+        exceptionFormat "full"
+        showStandardStreams false
+    }
+
+    // Resumen final
+    afterSuite { desc, result ->
+        if (!desc.parent) {
+            def status = result.failedTestCount == 0 ? " TODOS PASARON" : " HAY FALLOS"
+            println "\n$status — ${result.testCount} tests | ${result.successfulTestCount} exitosos | ${result.failedTestCount} fallidos | ${result.skippedTestCount} omitidos"
+        }
+    }
 }
 
 springBoot {
