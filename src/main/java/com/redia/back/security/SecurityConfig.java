@@ -53,8 +53,8 @@ public class SecurityConfig {
 
     // CADENA 1: Seguridad para endpoints de Actuator - PRIORIDAD ALTA
     // /actuator/prometheus y /actuator/health son públicos para que Grafana Cloud
-    // pueda hacer scrape directamente (HTTPS en producción provee la capa de seguridad).
-
+    // pueda hacer scrape directamente (HTTPS en producción provee la capa de
+    // seguridad).
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -69,14 +69,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/actuator/**", // Actuator con context-path
-                                "/actuator/**",     // Actuator sin context-path
-                                "/api/auth/**",     // Endpoints de login y registro
-                                "/api/chatbot/**",  // Endpoints del chatbot
-                                "/api/orders/debug-all", 
+                                "/actuator/**", // Actuator sin context-path
+                                "/api/auth/**", // Endpoints de login y registro
+                                "/api/chatbot/**", // Endpoints del chatbot
+                                "/api/orders/debug-all",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
+                                "/swagger-ui.html")
+                        .permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -112,6 +112,10 @@ public class SecurityConfig {
      * Define los orígenes permitidos (frontends conocidos y Grafana Cloud),
      * los métodos HTTP aceptados, y permite el envío de credenciales en las
      * peticiones.
+     *
+     * NOTA: Con allowCredentials=true, NO se puede usar wildcard "*" en
+     * allowedHeaders. La spec CORS lo prohíbe explícitamente y causa que
+     * el preflight OPTIONS falle con 403 en navegadores modernos.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -129,7 +133,19 @@ public class SecurityConfig {
                 "https://angiebonilla.grafana.net"));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD", "TRACE"));
-        configuration.setAllowedHeaders(List.of("*"));
+
+        // FIX: Con allowCredentials=true, el wildcard "*" en allowedHeaders viola
+        // la spec CORS (RFC 6454) y hace que el preflight OPTIONS falle con 403.
+        // Se listan explícitamente los headers que el frontend necesita enviar.
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "X-Requested-With",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers"));
+
         configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
