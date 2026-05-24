@@ -34,14 +34,6 @@ public class PrometheusMetricsConfig {
     }
     
     /**
-     * Re-habilitamos el registro de Prometheus explícitamente
-     */
-    @Bean
-    public PrometheusMeterRegistry prometheusMeterRegistry() {
-        return new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
-    }
-
-    /**
      * Bean para RestTemplate usado en cliente HTTP
      */
     @Bean
