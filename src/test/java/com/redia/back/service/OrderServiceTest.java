@@ -8,7 +8,6 @@ import com.redia.back.model.*;
 import com.redia.back.repository.*;
 import com.redia.back.service.impl.OrderServiceImpl;
 
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.security.core.Authentication;
@@ -61,9 +59,6 @@ class OrderServiceTest {
 
     @Mock
     private ActionLogService actionLogService;
-
-    @Spy
-    private SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
 
     // Mocks de Spring Security para simular usuario autenticado (el mesero)
     @Mock

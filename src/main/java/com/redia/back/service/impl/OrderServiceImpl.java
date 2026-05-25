@@ -7,9 +7,6 @@ import com.redia.back.repository.*;
 import com.redia.back.service.ImageService;
 import com.redia.back.service.OrderService;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -36,7 +33,6 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final ImageService imageService;
     private final com.redia.back.service.ActionLogService actionLogService;
-    private final MeterRegistry meterRegistry;
 
     public OrderServiceImpl(
             OrderRepository orderRepository,
@@ -44,29 +40,13 @@ public class OrderServiceImpl implements OrderService {
             ReservationRepository reservationRepository,
             UserRepository userRepository,
             ImageService imageService,
-            com.redia.back.service.ActionLogService actionLogService,
-            MeterRegistry meterRegistry) {
+            com.redia.back.service.ActionLogService actionLogService) {
         this.orderRepository = orderRepository;
         this.dishRepository = dishRepository;
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.imageService = imageService;
         this.actionLogService = actionLogService;
-        this.meterRegistry = meterRegistry;
-    }
-
-    @PostConstruct
-    void registerOrderMetrics() {
-        meterRegistry.counter("redia.orders.created", "result", "success");
-
-        for (PaymentMethod method : PaymentMethod.values()) {
-            meterRegistry.counter("redia.order.payments", "result", "success", "method", method.name());
-            Timer.builder("redia.order.payment.duration")
-                    .description("Tiempo que tarda el sistema en registrar el pago de un pedido listo")
-                    .tag("result", "success")
-                    .tag("method", method.name())
-                    .register(meterRegistry);
-        }
     }
 
     // ─────────────────────────────────
@@ -159,8 +139,6 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
         
         actionLogService.registrar(mesero, "CREAR_PEDIDO", "El mesero creó el pedido " + order.getId() + " para la reserva " + reserva.getId());
-
-        meterRegistry.counter("redia.orders.created", "result", "success").increment();
 
         logger.info("Pedido {} creado con éxito", order.getId());
         return toDTO(order);
@@ -255,7 +233,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponseDTO registrarPago(String id, PayOrderRequestDTO request) {
-        Timer.Sample paymentTimer = Timer.start(meterRegistry);
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Pedido no encontrado"));
         if (order.getStatus() != OrderStatus.LISTO) {
@@ -274,13 +251,6 @@ public class OrderServiceImpl implements OrderService {
         order.setPayment(pago);
         order.setStatus(OrderStatus.PAGADO);
         orderRepository.save(order);
-
-        meterRegistry.counter("redia.order.payments", "result", "success", "method", metodo.name()).increment();
-        paymentTimer.stop(Timer.builder("redia.order.payment.duration")
-                .description("Tiempo que tarda el sistema en registrar el pago de un pedido listo")
-                .tag("result", "success")
-                .tag("method", metodo.name())
-                .register(meterRegistry));
 
         actionLogService.registrarSinUsuario(order.getMesero().getEmail(), "PAGO_REGISTRADO", "Se pagó el pedido " + order.getId() + " mediante " + metodo.name());
         logger.info("Pedido {} marcado como PAID con método {}", id, metodo);

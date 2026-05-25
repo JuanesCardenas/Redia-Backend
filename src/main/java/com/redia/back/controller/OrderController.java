@@ -1,8 +1,12 @@
 package com.redia.back.controller;
 
 import com.redia.back.dto.*;
+import com.redia.back.model.PaymentMethod;
 import com.redia.back.service.OrderService;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +26,25 @@ public class OrderController {
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
     private final OrderService orderService;
+    private final MeterRegistry meterRegistry;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, MeterRegistry meterRegistry) {
         this.orderService = orderService;
+        this.meterRegistry = meterRegistry;
+    }
+
+    @PostConstruct
+    void registerOrderMetrics() {
+        meterRegistry.counter("redia.orders.created", "result", "success");
+
+        for (PaymentMethod method : PaymentMethod.values()) {
+            meterRegistry.counter("redia.order.payments", "result", "success", "method", method.name());
+            Timer.builder("redia.order.payment.duration")
+                    .description("Tiempo que tarda el sistema en registrar el pago de un pedido listo")
+                    .tag("result", "success")
+                    .tag("method", method.name())
+                    .register(meterRegistry);
+        }
     }
 
     // ─────────────── MESERO ───────────────
@@ -36,7 +56,9 @@ public class OrderController {
     @PreAuthorize("hasRole('MESERO')")
     public ResponseEntity<OrderResponseDTO> crearPedido(@RequestBody CreateOrderRequestDTO request) {
         logger.info("POST /api/orders - crear pedido");
-        return ResponseEntity.ok(orderService.crearPedido(request));
+        OrderResponseDTO response = orderService.crearPedido(request);
+        meterRegistry.counter("redia.orders.created", "result", "success").increment();
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -108,7 +130,18 @@ public class OrderController {
             @PathVariable String id,
             @RequestBody PayOrderRequestDTO request) {
         logger.info("PUT /api/orders/{}/pay", id);
-        return ResponseEntity.ok(orderService.registrarPago(id, request));
+        Timer.Sample paymentTimer = Timer.start(meterRegistry);
+        OrderResponseDTO response = orderService.registrarPago(id, request);
+        String method = request.metodoPago().toUpperCase();
+
+        meterRegistry.counter("redia.order.payments", "result", "success", "method", method).increment();
+        paymentTimer.stop(Timer.builder("redia.order.payment.duration")
+                .description("Tiempo que tarda el sistema en registrar el pago de un pedido listo")
+                .tag("result", "success")
+                .tag("method", method)
+                .register(meterRegistry));
+
+        return ResponseEntity.ok(response);
     }
 
     // ─────────────── COMPARTIDO ───────────────
