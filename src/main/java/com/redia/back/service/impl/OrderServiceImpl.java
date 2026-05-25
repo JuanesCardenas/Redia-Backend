@@ -9,6 +9,7 @@ import com.redia.back.service.OrderService;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -52,6 +53,20 @@ public class OrderServiceImpl implements OrderService {
         this.imageService = imageService;
         this.actionLogService = actionLogService;
         this.meterRegistry = meterRegistry;
+    }
+
+    @PostConstruct
+    void registerOrderMetrics() {
+        meterRegistry.counter("redia.orders.created", "result", "success");
+
+        for (PaymentMethod method : PaymentMethod.values()) {
+            meterRegistry.counter("redia.order.payments", "result", "success", "method", method.name());
+            Timer.builder("redia.order.payment.duration")
+                    .description("Tiempo que tarda el sistema en registrar el pago de un pedido listo")
+                    .tag("result", "success")
+                    .tag("method", method.name())
+                    .register(meterRegistry);
+        }
     }
 
     // ─────────────────────────────────
